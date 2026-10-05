@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jurusan - SMKN 4 Bogor</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- ANIMASI HALAMAN JURUSAN --}}
+    <style>
+        /* ---------- keyframes ---------- */
+        @keyframes j-fade-up   { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+        @keyframes j-reveal    { from { opacity: 0; transform: translateY(34px) scale(.96); } to { opacity: 1; transform: none; } }
+        @keyframes j-grow-x    { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+        @keyframes j-kenburns  { from { transform: scale(1.05) translate3d(0, 0, 0); } to { transform: scale(1.16) translate3d(-1.5%, -1%, 0); } }
+        @keyframes j-float     { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-16px) rotate(6deg); } }
+        @keyframes j-float-rev { 0%, 100% { transform: translateY(0) rotate(5deg); } 50% { transform: translateY(14px) rotate(-6deg); } }
+        @keyframes j-wiggle    { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-14deg) scale(1.08); } 45% { transform: rotate(12deg) scale(1.08); } 70% { transform: rotate(-7deg); } }
+        @keyframes j-bob       { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+        @keyframes j-tab-in    { from { opacity: 0; transform: translateY(40px) scale(.9); } to { opacity: 1; transform: none; } }
+        @keyframes j-panel-in  { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+        @keyframes j-pop       { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
+        @keyframes j-fade      { from { opacity: 0; } to { opacity: 1; } }
+
+        /* ---------- hero (urutan muncul saat halaman dibuka) ---------- */
+        .j-kenburns  { animation: j-kenburns 20s ease-in-out infinite alternate; }
+        .j-fade-up   { animation: j-fade-up .8s cubic-bezier(.22, 1, .36, 1) both; animation-delay: var(--d, 0ms); }
+        .j-hero-line { transform-origin: left; animation: j-grow-x .9s cubic-bezier(.22, 1, .36, 1) .55s both; }
+
+        /* hiasan melayang (emoji lucu) */
+        .j-float     { animation: j-float 6s ease-in-out infinite; animation-delay: var(--d, 0ms); }
+        .j-float-rev { animation: j-float-rev 7s ease-in-out infinite; animation-delay: var(--d, 0ms); }
+
+        /* ---------- kartu tab jurusan ---------- */
+        .j-tab-enter { animation: j-tab-in .7s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--i, 0) * 110ms + 450ms); }
+        .jurusan-tab-btn:hover .j-tab-logo { animation: j-wiggle .7s ease-in-out; }
+        .jurusan-tab-btn:active { transform: scale(.97); }
+        .jurusan-tab-btn.is-active { box-shadow: 0 18px 40px -14px rgba(15, 30, 61, .6); }
+        .jurusan-tab-btn.is-active::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -13px;
+            margin-left: -8px;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 9px solid #facc15;
+            animation: j-bob 1.2s ease-in-out infinite;
+        }
+
+        /* ---------- pergantian panel ---------- */
+        .j-panel-enter { animation: j-panel-in .55s cubic-bezier(.22, 1, .36, 1) both; }
+
+        /* ---------- muncul saat di-scroll ---------- */
+        .j-reveal { opacity: 0; }
+        .j-reveal.is-visible { animation: j-reveal .75s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--i, 0) * 90ms); }
+
+        /* garis aksen di bawah judul memanjang saat judul muncul */
+        .j-garis { transform-origin: left; transform: scaleX(0); transition: transform .8s cubic-bezier(.22, 1, .36, 1) .25s; }
+        .is-visible .j-garis { transform: scaleX(1); }
+
+        /* kilau menyapu kartu saat di-hover */
+        .j-shine::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            pointer-events: none;
+            background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .38) 50%, transparent 62%);
+            transform: translateX(-130%);
+            transition: transform .9s ease;
+        }
+        .j-shine:hover::before { transform: translateX(130%); }
+
+        /* ikon statistik bergoyang saat kartu di-hover */
+        .j-stat:hover .j-stat-ikon { animation: j-wiggle .7s ease-in-out; }
+
+        /* ---------- lightbox ---------- */
+        .j-lightbox-in   { animation: j-fade .25s ease both; }
+        .j-lightbox-img  { animation: j-pop .35s cubic-bezier(.22, 1, .36, 1) both; }
+
+        /* ---------- hormati pengguna yang mematikan animasi ---------- */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                animation-delay: 0ms !important;
+                transition-duration: .01ms !important;
+                transition-delay: 0ms !important;
+            }
+            .j-reveal { opacity: 1; }
+            .j-garis { transform: scaleX(1); }
+        }
+    </style>
+    <noscript><style>.j-reveal { opacity: 1; } .j-garis { transform: scaleX(1); }</style></noscript>
+</head>
+<body class="font-sans text-gray-800 bg-gray-50">
+
+    @include('partials.navbar')
+
+    {{-- HERO JURUSAN --}}
+    <section class="relative h-72 md:h-96 overflow-hidden">
+        <img src="{{ asset('images/lapangan miring.JPG') }}" alt="Jurusan SMKN 4 Bogor" class="j-kenburns absolute inset-0 w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-r from-navy-900 via-navy-900/85 to-navy-900/40"></div>
+
+        {{-- bola cahaya melayang --}}
+        <span class="j-float absolute top-8 right-1/3 w-28 h-28 rounded-full bg-yellow-400/20 blur-2xl pointer-events-none"></span>
+        <span class="j-float-rev absolute bottom-10 right-16 w-40 h-40 rounded-full bg-blue-600/30 blur-3xl pointer-events-none"></span>
+
+        {{-- emoji lucu melayang (4 jurusan) --}}
+        <div class="hidden md:block pointer-events-none select-none" aria-hidden="true">
+            <span class="j-float absolute top-16 right-24 text-4xl opacity-60" style="--d: 0ms">&#128295;</span>
+            <span class="j-float-rev absolute top-32 right-64 text-3xl opacity-50" style="--d: 600ms">&#127918;</span>
+            <span class="j-float absolute bottom-24 right-40 text-4xl opacity-60" style="--d: 1200ms">&#127760;</span>
+            <span class="j-float-rev absolute bottom-16 right-96 text-3xl opacity-50" style="--d: 1800ms">&#128293;</span>
+        </div>
+
+        {{-- watermark --}}
+        <span class="j-float-rev absolute right-6 md:right-16 bottom-0 text-[8rem] md:text-[13rem] font-black leading-none text-white/5 select-none pointer-events-none">SMK</span>
+
+        <div class="relative z-10 h-full flex flex-col justify-center px-8 md:px-16 pb-10 text-white">
+            <span class="j-fade-up inline-flex items-center gap-2 self-start bg-white/10 backdrop-blur border border-white/20 text-yellow-400 font-semibold text-xs px-4 py-1.5 rounded-full mb-4" style="--d: 100ms">
+                <span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
+                Program Keahlian
+            </span>
+            <h1 class="j-fade-up text-3xl md:text-5xl font-extrabold leading-tight mb-4 max-w-2xl" style="--d: 250ms">Jurusan SMKN 4 Bogor</h1>
+            <div class="j-hero-line w-20 h-1.5 rounded-full bg-gradient-to-r from-blue-600 to-yellow-400 mb-4"></div>
+            <p class="j-fade-up text-sm md:text-base text-white/80 max-w-lg" style="--d: 600ms">Kenali lebih dekat kegiatan, karya, dan dokumentasi setiap program keahlian di SMKN 4 Bogor.</p>
+        </div>
+    </section>
+
+    @php
+        // ===== DATA JURUSAN =====
+        // Nama, logo, dan deskripsi jurusan tetap diatur di sini.
+        // Seragam, kegiatan, produk, dan dokumentasi dibaca dari database (admin > Jurusan).
+        // 'emoji' = hiasan lucu yang melayang di header (kode HTML entity).
+        $meta = [
+            'TO' => [
+                'nama' => 'Teknik Otomotif',
+                'logo' => 'TKRO.png',
+                'emoji' => ['&#128295;', '&#128663;', '&#9881;'],
+                'deskripsi' => 'Program keahlian yang membekali siswa dengan kemampuan perawatan, perbaikan, dan diagnosa kendaraan bermotor, mulai dari sistem mesin, kelistrikan, hingga sasis dan pemindah tenaga.',
+            ],
+            'PPLG' => [
+                'nama' => 'Pengembangan Perangkat Lunak dan Gim',
+                'logo' => 'PPLG.png',
+                'emoji' => ['&#127918;', '&#128187;', '&#128126;'],
+                'deskripsi' => 'Program keahlian yang mendidik siswa untuk merancang, membangun, dan menguji perangkat lunak maupun gim digital, mencakup pemrograman web, aplikasi mobile, basis data, hingga pengembangan gim interaktif.',
+            ],
+            'TJKT' => [
+                'nama' => 'Teknik Jaringan Komputer dan Telekomunikasi',
+                'logo' => 'TJKT.png',
+                'emoji' => ['&#127760;', '&#128225;', '&#128268;'],
+                'deskripsi' => 'Program keahlian yang berfokus pada instalasi, konfigurasi, dan pemeliharaan jaringan komputer serta sistem telekomunikasi, termasuk jaringan kabel, nirkabel, dan infrastruktur server.',
+            ],
+            'TPFL' => [
+                'nama' => 'Teknik Pengelasan dan Fabrikasi Logam',
+                'logo' => 'TPFL.png',
+                'emoji' => ['&#128293;', '&#9889;', '&#128295;'],
+                'deskripsi' => 'Program keahlian yang melatih siswa dalam teknik pengelasan, pembentukan, dan perakitan konstruksi logam sesuai standar industri manufaktur dan fabrikasi.',
+            ],
+        ];
+
+        $kelompok = fn ($model) => $model::orderBy('urutan')->orderBy('id')->get()->groupBy('jurusan');
+        $dbSeragam     = $kelompok(\App\Models\JurusanSeragam::class);
+        $dbKegiatan    = $kelompok(\App\Models\JurusanKegiatan::class);
+        $dbProduk      = $kelompok(\App\Models\JurusanProduk::class);
+        $dbDokumentasi = $kelompok(\App\Models\JurusanDokumentasi::class);
+
+        $pengganti = asset('images/LOGO.png');
+
+        $jurusanData = [];
+        foreach ($meta as $kode => $m) {
+            $jurusanData[$kode] = $m + [
+                'baju' => ($dbSeragam[$kode] ?? collect())->map(fn ($r) => [
+                    'label' => $r->label,
+                    'img'   => $r->urlGambar('gambar') ?: $pengganti,
+                ])->all(),
+                'kegiatan' => ($dbKegiatan[$kode] ?? collect())->map(fn ($r) => [
+                    'judul'     => $r->judul,
+                    'deskripsi' => $r->deskripsi,
+                    'img'       => $r->urlGambar('gambar') ?: $pengganti,
+                ])->all(),
+                'produk' => ($dbProduk[$kode] ?? collect())->map(fn ($r) => [
+                    'judul'     => $r->judul,
+                    'deskripsi' => $r->deskripsi,
+                    'img'       => $r->urlGambar('gambar') ?: $pengganti,
+                ])->all(),
+                'dokumentasi' => ($dbDokumentasi[$kode] ?? collect())
+                    ->filter(fn ($r) => $r->gambar)
+                    ->map(fn ($r) => [
+                        'keterangan' => $r->keterangan,
+                        'img'        => $r->urlGambar('gambar'),
+                    ])->values()->all(),
+            ];
+        }
+
+        // Ikon kecil (path SVG solid 24x24)
+        $ikon = [
+            'kegiatan'    => 'M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm12 8H5v10h14V10Z',
+            'produk'      => 'M12 2 3 7v10l9 5 9-5V7l-9-5Zm0 2.3L18.7 8 12 11.7 5.3 8 12 4.3ZM5 9.7l6 3.3v6.6l-6-3.3V9.7Zm8 9.9V13l6-3.3v6.6l-6 3.3Z',
+            'dokumentasi' => 'M4 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3l-1.5-2h-7L7 5H4Zm8 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z',
+            'baju'        => 'M9 3 3 6l2 4 2-1v12h10V9l2 1 2-4-6-3a3 3 0 0 1-6 0Z',
+        ];
+    @endphp
+
+    {{-- KARTU TAB JURUSAN (menumpuk di atas hero) --}}
+    <section class="relative z-20 px-8 md:px-16 -mt-12">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="tab-jurusan">
+            @foreach ($jurusanData as $kode => $j)
+                <button
+                    type="button"
+                    data-tab="{{ $kode }}"
+                    style="--i: {{ $loop->index }}"
+                    class="jurusan-tab-btn j-tab-enter group relative text-left rounded-2xl p-4 md:p-5 border-b-4 shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center gap-4 {{ $loop->first ? 'is-active bg-navy-900 text-white border-yellow-400' : 'bg-white text-navy-900 border-transparent' }}">
+                    <span class="j-tab-logo w-12 h-12 md:w-14 md:h-14 rounded-xl bg-white {{ $loop->first ? '' : 'border border-gray-100' }} flex items-center justify-center p-1.5 shrink-0">
+                        <img src="{{ asset('images/'.$j['logo']) }}" alt="{{ $kode }}" class="w-full h-full object-contain">
+                    </span>
+                    <span class="min-w-0">
+                        <span class="block text-lg font-extrabold leading-none">{{ $kode }}</span>
+                        <span class="tab-nama block text-[11px] mt-1.5 leading-snug line-clamp-2 {{ $loop->first ? 'text-white/70' : 'text-gray-500' }}">{{ $j['nama'] }}</span>
+                    </span>
+                </button>
+            @endforeach
+        </div>
+    </section>
+
+    {{-- KONTEN PER JURUSAN --}}
+    <section class="px-8 md:px-16 py-12 mt-4">
+        @foreach ($jurusanData as $kode => $j)
+            <div class="jurusan-panel {{ $loop->first ? '' : 'hidden' }}" id="panel-{{ $kode }}">
+
+                {{-- HEADER JURUSAN --}}
+                <div class="j-reveal relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy-900 via-navy-900 to-blue-600 shadow-xl p-6 md:p-10 mb-14">
+                    <span class="j-float-rev absolute -bottom-8 -right-2 text-[10rem] md:text-[14rem] font-black leading-none text-white/5 select-none pointer-events-none">{{ $kode }}</span>
+
+                    {{-- emoji lucu khas jurusan --}}
+                    <div class="hidden md:block pointer-events-none select-none" aria-hidden="true">
+                        <span class="j-float absolute top-6 right-12 text-4xl opacity-50" style="--d: 0ms">{!! $j['emoji'][0] !!}</span>
+                        <span class="j-float-rev absolute top-24 right-36 text-3xl opacity-40" style="--d: 700ms">{!! $j['emoji'][1] !!}</span>
+                        <span class="j-float absolute top-12 right-64 text-3xl opacity-40" style="--d: 1400ms">{!! $j['emoji'][2] !!}</span>
+                    </div>
+
+                    <div class="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
+                        <span class="j-float w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-white shadow-lg flex items-center justify-center p-3 shrink-0">
+                            <img src="{{ asset('images/'.$j['logo']) }}" alt="Logo {{ $j['nama'] }}" class="w-full h-full object-contain">
+                        </span>
+                        <div class="text-center md:text-left text-white">
+                            <span class="inline-block bg-yellow-400 text-navy-900 text-xs font-bold px-3 py-1 rounded-full mb-3">Program Keahlian {{ $kode }}</span>
+                            <h2 class="text-2xl md:text-3xl font-extrabold leading-snug mb-3">{{ $j['nama'] }}</h2>
+                            <div class="j-garis w-16 h-1 rounded-full bg-gradient-to-r from-blue-300 to-yellow-400 mb-4 mx-auto md:mx-0"></div>
+                            <p class="text-sm text-white/80 leading-relaxed max-w-3xl">{{ $j['deskripsi'] }}</p>
+                        </div>
+                    </div>
+
+                    {{-- ringkasan jumlah --}}
+                    <div class="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-3 mt-8">
+                        @foreach ([
+                            ['Angkatan', count($j['baju']), 'baju'],
+                            ['Kegiatan', count($j['kegiatan']), 'kegiatan'],
+                            ['Produk', count($j['produk']), 'produk'],
+                            ['Dokumentasi', count($j['dokumentasi']), 'dokumentasi'],
+                        ] as [$label, $jumlah, $key])
+                            <div class="j-stat bg-white/10 backdrop-blur border border-white/15 rounded-xl px-4 py-3 flex items-center gap-3 hover:bg-white/20 hover:-translate-y-1 transition-all duration-300">
+                                <svg class="j-stat-ikon w-5 h-5 text-yellow-400 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="{{ $ikon[$key] }}"/></svg>
+                                <div class="text-white leading-none">
+                                    <p class="text-lg font-extrabold"><span class="j-count" data-target="{{ $jumlah }}">{{ $jumlah }}</span></p>
+                                    <p class="text-[11px] text-white/70 mt-1">{{ $label }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- BAJU KEJURUAN --}}
+                <div class="mb-16">
+                    <div class="j-reveal">
+                        <span class="inline-block bg-blue-50 text-blue-600 text-xs font-bold px-3 py-1 rounded-full mb-3">Identitas</span>
+                        <h3 class="text-2xl font-extrabold text-navy-900">Baju Kejuruan</h3>
+                        <div class="j-garis w-16 h-1 rounded-full bg-gradient-to-r from-blue-600 to-yellow-400 mt-3 mb-3"></div>
+                        <p class="text-sm text-gray-500 mb-6">Seragam identitas siswa jurusan {{ $kode }} per angkatan.</p>
+                    </div>
+
+                    @if (count($j['baju']) === 0)
+                        <p class="text-sm text-gray-400">Belum ada data seragam.</p>
+                    @endif
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+                        @foreach ($j['baju'] as $baju)
+                            <div style="--i: {{ $loop->index % 4 }}" class="j-reveal j-shine relative bg-white rounded-2xl shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden group">
+                                <div class="overflow-hidden bg-gradient-to-b from-gray-50 to-blue-50 cursor-zoom-in">
+                                    <img src="{{ $baju['img'] }}" data-lightbox alt="Baju {{ $kode }} {{ $baju['label'] }}" class="w-full h-80 md:h-[28rem] object-cover object-top group-hover:scale-105 transition-transform duration-500">
+                                </div>
+                                <div class="p-3 text-center">
+                                    <span class="inline-block bg-navy-900 text-white text-[11px] font-semibold px-3 py-1 rounded-full group-hover:bg-blue-600 transition-colors duration-300">{{ $baju['label'] }}</span>
+                                </div>
+                                <span class="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-500 bg-gradient-to-r from-blue-600 to-yellow-400"></span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- KEGIATAN JURUSAN --}}
+                <div class="mb-16">
+                    <div class="j-reveal">
+                        <span class="inline-block bg-blue-50 text-blue-600 text-xs font-bold px-3 py-1 rounded-full mb-3">Aktivitas</span>
+                        <h3 class="text-2xl font-extrabold text-navy-900">Kegiatan Jurusan</h3>
+                        <div class="j-garis w-16 h-1 rounded-full bg-gradient-to-r from-blue-600 to-yellow-400 mt-3 mb-3"></div>
+                        <p class="text-sm text-gray-500 mb-6">Rangkaian kegiatan praktik dan non-praktik siswa jurusan {{ $kode }}.</p>
+                    </div>
+
+                    @if (count($j['kegiatan']) === 0)
+                        <p class="text-sm text-gray-400">Belum ada data kegiatan.</p>
+                    @endif
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        @foreach ($j['kegiatan'] as $kegiatan)
+                            <div style="--i: {{ $loop->index % 3 }}" class="j-reveal j-shine relative bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col">
+                                <div class="relative overflow-hidden">
+                                    <img src="{{ $kegiatan['img'] }}" alt="{{ $kegiatan['judul'] }}" class="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-navy-900/50 via-transparent to-transparent"></div>
+                                    <span class="absolute top-3 left-3 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">Kegiatan</span>
+                                    <span class="absolute top-3 right-3 bg-white/90 text-navy-900 text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                                        <img src="{{ asset('images/'.$j['logo']) }}" alt="{{ $kode }}" class="w-3.5 h-3.5 object-contain">
+                                        {{ $kode }}
+                                    </span>
+                                </div>
+                                <div class="relative p-5 flex-1 overflow-hidden">
+                                    <span class="absolute -bottom-4 -right-1 text-8xl font-black leading-none text-gray-100 select-none pointer-events-none group-hover:text-blue-100 group-hover:-translate-y-1 transition-all duration-500">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
+                                    <h4 class="relative font-bold text-base text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">{{ $kegiatan['judul'] }}</h4>
+                                    <p class="relative text-sm text-gray-500 leading-relaxed">{{ $kegiatan['deskripsi'] }}</p>
+                                </div>
+                                <span class="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-500 bg-gradient-to-r from-blue-600 to-yellow-400"></span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- PRODUK JURUSAN --}}
+                <div class="mb-16">
+                    <div class="j-reveal">
+                        <span class="inline-block bg-yellow-100 text-yellow-700 text-xs font-bold px-3 py-1 rounded-full mb-3">Karya Siswa</span>
+                        <h3 class="text-2xl font-extrabold text-navy-900">Produk Jurusan</h3>
+                        <div class="j-garis w-16 h-1 rounded-full bg-gradient-to-r from-blue-600 to-yellow-400 mt-3 mb-3"></div>
+                        <p class="text-sm text-gray-500 mb-6">Karya dan hasil proyek siswa jurusan {{ $kode }}.</p>
+                    </div>
+
+                    @if (count($j['produk']) === 0)
+                        <p class="text-sm text-gray-400">Belum ada data produk.</p>
+                    @endif
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        @foreach ($j['produk'] as $produk)
+                            <div style="--i: {{ $loop->index % 3 }}" class="j-reveal j-shine relative bg-navy-900 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col">
+                                <div class="relative overflow-hidden">
+                                    <img src="{{ $produk['img'] }}" alt="{{ $produk['judul'] }}" class="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-navy-900 via-transparent to-transparent"></div>
+                                    <span class="absolute top-3 left-3 bg-yellow-400 text-navy-900 text-xs font-bold px-3 py-1 rounded-full shadow">Produk</span>
+                                </div>
+                                <div class="relative p-5 flex-1 overflow-hidden text-white">
+                                    <span class="absolute -bottom-4 -right-1 text-8xl font-black leading-none text-white/5 select-none pointer-events-none group-hover:text-white/10 group-hover:-translate-y-1 transition-all duration-500">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
+                                    <h4 class="relative font-bold text-base mb-2 group-hover:text-yellow-400 transition-colors">{{ $produk['judul'] }}</h4>
+                                    <p class="relative text-sm text-white/70 leading-relaxed">{{ $produk['deskripsi'] }}</p>
+                                </div>
+                                <span class="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-500 bg-gradient-to-r from-blue-600 to-yellow-400"></span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- DOKUMENTASI LAINNYA --}}
+                <div>
+                    <div class="j-reveal">
+                        <span class="inline-block bg-blue-50 text-blue-600 text-xs font-bold px-3 py-1 rounded-full mb-3">Galeri</span>
+                        <h3 class="text-2xl font-extrabold text-navy-900">Dokumentasi Lainnya</h3>
+                        <div class="j-garis w-16 h-1 rounded-full bg-gradient-to-r from-blue-600 to-yellow-400 mt-3 mb-3"></div>
+                        <p class="text-sm text-gray-500 mb-6">Galeri foto tambahan seputar jurusan {{ $kode }}. Klik foto untuk memperbesar.</p>
+                    </div>
+
+                    @if (count($j['dokumentasi']) === 0)
+                        <p class="text-sm text-gray-400">Belum ada dokumentasi.</p>
+                    @endif
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        @foreach ($j['dokumentasi'] as $dok)
+                            <div style="--i: {{ $loop->index % 3 }}" class="j-reveal j-shine relative rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group cursor-zoom-in">
+                                <img src="{{ $dok['img'] }}" data-lightbox alt="{{ $dok['keterangan'] ?: 'Dokumentasi '.$kode }}" class="w-full h-56 object-cover group-hover:scale-110 transition-transform duration-500">
+                                <div class="absolute inset-0 bg-gradient-to-t from-navy-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                                <span class="absolute bottom-3 left-3 inline-flex items-center gap-1.5 text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="{{ $ikon['dokumentasi'] }}"/></svg>
+                                    {{ $dok['keterangan'] ?: 'Dokumentasi '.$kode }}
+                                </span>
+                                <span class="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-500 bg-gradient-to-r from-blue-600 to-yellow-400 pointer-events-none"></span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+            </div>
+        @endforeach
+    </section>
+
+    {{-- LIGHTBOX --}}
+    <div id="lightbox" class="hidden fixed inset-0 z-[100] bg-navy-900/95 items-center justify-center p-6 cursor-zoom-out">
+        <button type="button" id="lightbox-close" class="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 hover:rotate-90 text-white text-xl flex items-center justify-center transition duration-300" aria-label="Tutup">&times;</button>
+        <img id="lightbox-img" src="" alt="" class="max-w-full max-h-full rounded-xl shadow-2xl object-contain">
+    </div>
+
+    <script>
+        const tabButtons = document.querySelectorAll('.jurusan-tab-btn');
+        const panels = document.querySelectorAll('.jurusan-panel');
+        const kurangGerak = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        const activeClasses = ['is-active', 'bg-navy-900', 'text-white', 'border-yellow-400'];
+        const inactiveClasses = ['bg-white', 'text-navy-900', 'border-transparent'];
+
+        // ---------- angka statistik menghitung naik ----------
+        const hitungNaik = (panel) => {
+            panel.querySelectorAll('.j-count').forEach(el => {
+                const target = parseInt(el.dataset.target, 10) || 0;
+                if (kurangGerak || target === 0) { el.textContent = target; return; }
+
+                const durasi = 900;
+                const mulai = performance.now();
+                const langkah = (sekarang) => {
+                    const p = Math.min((sekarang - mulai) / durasi, 1);
+                    const halus = 1 - Math.pow(1 - p, 3); // ease-out
+                    el.textContent = Math.round(target * halus);
+                    if (p < 1) requestAnimationFrame(langkah);
+                };
+                el.textContent = 0;
+                requestAnimationFrame(langkah);
+            });
+        };
+
+        // ---------- ganti tab ----------
+        const activateTab = (target) => {
+            tabButtons.forEach(b => {
+                const isActive = b.dataset.tab === target;
+                b.classList.remove(...(isActive ? inactiveClasses : activeClasses));
+                b.classList.add(...(isActive ? activeClasses : inactiveClasses));
+
+                const nama = b.querySelector('.tab-nama');
+                nama.classList.toggle('text-white/70', isActive);
+                nama.classList.toggle('text-gray-500', !isActive);
+            });
+
+            panels.forEach(panel => {
+                const tampil = panel.id === `panel-${target}`;
+                panel.classList.toggle('hidden', !tampil);
+
+                if (tampil) {
+                    // ulangi animasi masuk panel
+                    panel.classList.remove('j-panel-enter');
+                    void panel.offsetWidth;
+                    panel.classList.add('j-panel-enter');
+                    hitungNaik(panel);
+                }
+            });
+        };
+
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+        });
+
+        // Buka tab langsung lewat URL, mis. /jurusan#PPLG
+        const hashTab = decodeURIComponent(window.location.hash.slice(1));
+        if (hashTab && document.getElementById(`panel-${hashTab}`)) {
+            activateTab(hashTab);
+        } else if (panels[0]) {
+            hitungNaik(panels[0]);
+        }
+
+        // ---------- muncul saat di-scroll ----------
+        const itemReveal = document.querySelectorAll('.j-reveal');
+        if ('IntersectionObserver' in window) {
+            const pengamat = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        pengamat.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+            itemReveal.forEach(el => pengamat.observe(el));
+        } else {
+            itemReveal.forEach(el => el.classList.add('is-visible'));
+        }
+
+        // ---------- lightbox untuk foto baju & dokumentasi ----------
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+
+        const closeLightbox = () => {
+            lightbox.classList.add('hidden');
+            lightbox.classList.remove('flex', 'j-lightbox-in');
+            lightboxImg.classList.remove('j-lightbox-img');
+        };
+
+        document.querySelectorAll('img[data-lightbox]').forEach(img => {
+            img.addEventListener('click', () => {
+                lightboxImg.src = img.src;
+                lightboxImg.alt = img.alt;
+                lightbox.classList.remove('hidden');
+                lightbox.classList.add('flex', 'j-lightbox-in');
+                lightboxImg.classList.remove('j-lightbox-img');
+                void lightboxImg.offsetWidth;
+                lightboxImg.classList.add('j-lightbox-img');
+            });
+        });
+
+        lightbox.addEventListener('click', closeLightbox);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+    </script>
+
+</body>
+</html>

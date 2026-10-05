@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Models\Concerns;
+
+trait UrlGambar
+{
+    // Gambar bawaan (public/images/...) dan hasil upload (storage) sama-sama didukung.
+    public function urlGambar(string $field = 'gambar'): ?string
+    {
+        $v = $this->{$field};
+        if (! $v) {
+            return null;
+        }
+        return str_starts_with($v, 'images/') ? asset($v) : asset('storage/' . $v);
+    }
+}

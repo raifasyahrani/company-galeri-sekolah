@@ -1,0 +1,759 @@
+﻿
+===== routes\web.php =====
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfilController;
+use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\BeritaPageController;
+use App\Http\Controllers\EkstrakulikulerPageController;
+use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminBerandaController;
+use App\Http\Controllers\AdminProfilController;
+use App\Http\Controllers\AdminBeritaController;
+use App\Http\Controllers\AdminJurusanController;
+use App\Http\Controllers\AdminPrestasiController;
+use App\Http\Controllers\AdminGaleriController;
+use App\Http\Controllers\AdminEkskulController;
+
+// ================= HALAMAN PUBLIK =================
+Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
+Route::get('/profil', [ProfilController::class, 'index'])->name('profil');
+Route::get('/berita', [BeritaPageController::class, 'index'])->name('berita');
+Route::get('/jurusan', function () { return view('jurusan'); })->name('jurusan');
+Route::get('/galeri', function () { return view('galeri'); })->name('galeri');
+Route::get('/ekstrakulikuler', [EkstrakulikulerPageController::class, 'index'])->name('ekstrakulikuler');
+
+// ================= ADMIN =================
+Route::prefix('admin')->name('admin.')->group(function () {
+
+    Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AdminAuthController::class, 'login'])->name('login.submit');
+    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+
+    Route::middleware('admin.auth')->group(function () {
+
+        Route::get('/', fn () => redirect()->route('admin.dashboard'))->name('index');
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        // ---- BERANDA ----
+        Route::get('/beranda', [AdminBerandaController::class, 'edit'])->name('beranda');
+        Route::put('/beranda', [AdminBerandaController::class, 'update'])->name('beranda.update');
+
+        // ---- PROFIL ----
+        Route::get('/profil', [AdminProfilController::class, 'edit'])->name('profil');
+        Route::put('/profil', [AdminProfilController::class, 'update'])->name('profil.update');
+
+        // ---- CRUD BERITA ----
+        Route::get('/berita', [AdminBeritaController::class, 'index'])->name('berita');
+        Route::get('/berita/tambah', [AdminBeritaController::class, 'create'])->name('berita.create');
+        Route::post('/berita', [AdminBeritaController::class, 'store'])->name('berita.store');
+        Route::get('/berita/{berita}/edit', [AdminBeritaController::class, 'edit'])->name('berita.edit');
+        Route::put('/berita/{berita}', [AdminBeritaController::class, 'update'])->name('berita.update');
+        Route::delete('/berita/{berita}', [AdminBeritaController::class, 'destroy'])->name('berita.destroy');
+
+        // ---- CRUD JURUSAN ----
+        Route::get('/jurusan', [AdminJurusanController::class, 'index'])->name('jurusan');
+        Route::get('/jurusan/tambah', [AdminJurusanController::class, 'create'])->name('jurusan.create');
+        Route::post('/jurusan', [AdminJurusanController::class, 'store'])->name('jurusan.store');
+        Route::get('/jurusan/{jurusan}/edit', [AdminJurusanController::class, 'edit'])->name('jurusan.edit');
+        Route::put('/jurusan/{jurusan}', [AdminJurusanController::class, 'update'])->name('jurusan.update');
+        Route::delete('/jurusan/{jurusan}', [AdminJurusanController::class, 'destroy'])->name('jurusan.destroy');
+
+        // ---- CRUD PRESTASI ----
+        Route::get('/prestasi', [AdminPrestasiController::class, 'index'])->name('prestasi');
+        Route::get('/prestasi/tambah', [AdminPrestasiController::class, 'create'])->name('prestasi.create');
+        Route::post('/prestasi', [AdminPrestasiController::class, 'store'])->name('prestasi.store');
+        Route::get('/prestasi/{prestasi}/edit', [AdminPrestasiController::class, 'edit'])->name('prestasi.edit');
+        Route::put('/prestasi/{prestasi}', [AdminPrestasiController::class, 'update'])->name('prestasi.update');
+        Route::delete('/prestasi/{prestasi}', [AdminPrestasiController::class, 'destroy'])->name('prestasi.destroy');
+
+        // ---- CRUD GALERI ----
+        Route::get('/galeri', [AdminGaleriController::class, 'index'])->name('galeri');
+        Route::get('/galeri/tambah', [AdminGaleriController::class, 'create'])->name('galeri.create');
+        Route::post('/galeri', [AdminGaleriController::class, 'store'])->name('galeri.store');
+        Route::get('/galeri/{galeri}/edit', [AdminGaleriController::class, 'edit'])->name('galeri.edit');
+        Route::put('/galeri/{galeri}', [AdminGaleriController::class, 'update'])->name('galeri.update');
+        Route::delete('/galeri/{galeri}', [AdminGaleriController::class, 'destroy'])->name('galeri.destroy');
+
+        // ---- CRUD EKSKUL (tetap) ----
+        Route::get('/ekskul', [AdminEkskulController::class, 'index'])->name('ekskul');
+        Route::get('/ekskul/tambah', [AdminEkskulController::class, 'create'])->name('ekskul.create');
+        Route::post('/ekskul', [AdminEkskulController::class, 'store'])->name('ekskul.store');
+        Route::post('/ekskul/impor', [AdminEkskulController::class, 'impor'])->name('ekskul.impor');
+        Route::get('/ekskul/{ekskul}/edit', [AdminEkskulController::class, 'edit'])->name('ekskul.edit');
+        Route::put('/ekskul/{ekskul}', [AdminEkskulController::class, 'update'])->name('ekskul.update');
+        Route::delete('/ekskul/{ekskul}', [AdminEkskulController::class, 'destroy'])->name('ekskul.destroy');
+    });
+});
+
+===== resources\views\galeri.blade.php =====
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeri - SMKN 4 Bogor</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="font-sans text-gray-800 bg-gray-50">
+
+    @include('partials.navbar')
+
+    {{-- HERO GALERI --}}
+    <section class="relative h-72 md:h-96 overflow-hidden">
+        <img src="{{ asset('images/lapangan miring.JPG') }}" alt="Galeri SMKN 4 Bogor" class="absolute inset-0 w-full h-full object-cover scale-105">
+        <div class="absolute inset-0 bg-gradient-to-r from-navy-900 via-navy-900/85 to-navy-900/40"></div>
+
+        {{-- watermark --}}
+        <span class="absolute right-6 md:right-16 bottom-0 text-[8rem] md:text-[13rem] font-black leading-none text-white/5 select-none pointer-events-none">FOTO</span>
+
+        <div class="relative z-10 h-full flex flex-col justify-center px-8 md:px-16 pb-10 text-white">
+            <span class="inline-flex items-center gap-2 self-start bg-white/10 backdrop-blur border border-white/20 text-yellow-400 font-semibold text-xs px-4 py-1.5 rounded-full mb-4">
+                <span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
+                Dokumentasi Sekolah
+            </span>
+            <h1 class="text-3xl md:text-5xl font-extrabold leading-tight mb-4 max-w-2xl">Galeri SMKN 4 Bogor</h1>
+            <div class="w-20 h-1.5 rounded-full bg-gradient-to-r from-blue-600 to-yellow-400 mb-4"></div>
+            <p class="text-sm md:text-base text-white/80 max-w-lg">Kumpulan foto kegiatan, prestasi, fasilitas, dan momen berharga di SMKN 4 Bogor.</p>
+        </div>
+    </section>
+
+    @php
+        // ===== DATA (nanti diganti dengan data dari database) =====
+        $kategoriGaleri = ['Semua', 'Kegiatan', 'Prestasi', 'Fasilitas', 'Ekstrakulikuler', 'Jurusan'];
+
+        $daftarGaleri = [
+            ['judul' => 'Upacara Bendera Hari Senin', 'kategori' => 'Kegiatan', 'img' => 'galeri-1.jpg'],
+            ['judul' => 'MPLS Siswa Baru 2026', 'kategori' => 'Kegiatan', 'img' => 'galeri-2.jpg'],
+            ['judul' => 'LDKS OSIS & MPK', 'kategori' => 'Kegiatan', 'img' => 'galeri-3.jpg'],
+            ['judul' => 'Peringatan Hari Kemerdekaan', 'kategori' => 'Kegiatan', 'img' => 'galeri-4.jpg'],
+            ['judul' => 'Kegiatan Jumat Bersih', 'kategori' => 'Kegiatan', 'img' => 'galeri-5.jpg'],
+            ['judul' => 'Wisuda Kelulusan Kelas XII', 'kategori' => 'Kegiatan', 'img' => 'galeri-6.jpg'],
+
+            ['judul' => 'Juara 1 LKS Network Cabling', 'kategori' => 'Prestasi', 'img' => 'galeri-7.jpg'],
+            ['judul' => 'Juara 3 Futsal IBG Championship', 'kategori' => 'Prestasi', 'img' => 'galeri-8.jpg'],
+            ['judul' => 'Juara 1 Pencak Silat Regu Putri', 'kategori' => 'Prestasi', 'img' => 'galeri-9.jpg'],
+            ['judul' => 'Penghargaan Sekolah Adiwiyata', 'kategori' => 'Prestasi', 'img' => 'galeri-10.jpg'],
+
+            ['judul' => 'Laboratorium Komputer', 'kategori' => 'Fasilitas', 'img' => 'galeri-11.jpg'],
+            ['judul' => 'Bengkel Praktik Otomotif', 'kategori' => 'Fasilitas', 'img' => 'galeri-12.jpg'],
+            ['judul' => 'Perpustakaan Sekolah', 'kategori' => 'Fasilitas', 'img' => 'galeri-13.jpg'],
+            ['judul' => 'Lapangan Olahraga', 'kategori' => 'Fasilitas', 'img' => 'galeri-14.jpg'],
+            ['judul' => 'Masjid Sekolah', 'kategori' => 'Fasilitas', 'img' => 'galeri-15.jpg'],
+
+            ['judul' => 'Latihan Rutin Paskibra', 'kategori' => 'Ekstrakulikuler', 'img' => 'galeri-16.jpg'],
+            ['judul' => 'Latihan Pencak Silat', 'kategori' => 'Ekstrakulikuler', 'img' => 'galeri-17.jpg'],
+            ['judul' => 'Latihan Band Sekolah', 'kategori' => 'Ekstrakulikuler', 'img' => 'galeri-18.jpg'],
+            ['judul' => 'Kegiatan Pramuka', 'kategori' => 'Ekstrakulikuler', 'img' => 'galeri-19.jpg'],
+
+            ['judul' => 'Praktik Jurusan TO', 'kategori' => 'Jurusan', 'img' => 'galeri-20.jpg'],
+            ['judul' => 'Praktik Jurusan PPLG', 'kategori' => 'Jurusan', 'img' => 'galeri-21.jpg'],
+            ['judul' => 'Praktik Jurusan TJKT', 'kategori' => 'Jurusan', 'img' => 'galeri-22.jpg'],
+            ['judul' => 'Praktik Jurusan TPFL', 'kategori' => 'Jurusan', 'img' => 'galeri-23.jpg'],
+        ];
+
+        // Gaya badge & ikon per kategori
+        $kategoriStyle = [
+            'Semua'           => ['badge' => 'bg-navy-900 text-white',      'icon' => 'M3 3h8v8H3V3Zm10 0h8v8h-8V3ZM3 13h8v8H3v-8Zm10 0h8v8h-8v-8Z'],
+            'Kegiatan'        => ['badge' => 'bg-blue-600 text-white',      'icon' => 'M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm12 8H5v10h14V10Z'],
+            'Prestasi'        => ['badge' => 'bg-yellow-400 text-navy-900', 'icon' => 'M5 3h14v3a5 5 0 0 1-4 4.9V13a3 3 0 0 0 2 2.8V18H7v-2.2A3 3 0 0 0 9 13v-2.1A5 5 0 0 1 5 6V3Zm-3 2h2v1a3 3 0 0 0 2 2.8V7H4V5H2Zm18 0h2v2h-2v1.8A3 3 0 0 0 22 6V5h-2ZM8 20h8v2H8v-2Z'],
+            'Fasilitas'       => ['badge' => 'bg-navy-900 text-white',      'icon' => 'M3 21V8l9-5 9 5v13h-6v-6H9v6H3Z'],
+            'Ekstrakulikuler' => ['badge' => 'bg-sky-500 text-white',       'icon' => 'M12 2l3 6.5 7 .9-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.9L12 2Z'],
+            'Jurusan'         => ['badge' => 'bg-indigo-600 text-white',    'icon' => 'M12 3 1 9l11 6 9-4.9V17h2V9L12 3Zm-6 9.2V16c0 1.7 2.7 3 6 3s6-1.3 6-3v-3.8l-6 3.3-6-3.3Z'],
+        ];
+
+        $jumlah = collect($daftarGaleri)->countBy('kategori');
+        $total  = count($daftarGaleri);
+    @endphp
+
+    {{-- KARTU KATEGORI / FILTER (menumpuk di atas hero) --}}
+    <section class="relative z-20 px-8 md:px-16 -mt-12">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="filter-galeri">
+            @foreach ($kategoriGaleri as $kategori)
+                @php $n = $kategori === 'Semua' ? $total : ($jumlah[$kategori] ?? 0); @endphp
+                <button
+                    type="button"
+                    data-filter="{{ $kategori }}"
+                    class="filter-btn-galeri text-left rounded-2xl p-4 border-b-4 shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center gap-3 {{ $loop->first ? 'bg-navy-900 text-white border-yellow-400' : 'bg-white text-navy-900 border-transparent' }}">
+                    <span class="filter-icon w-11 h-11 rounded-xl flex items-center justify-center shrink-0 {{ $loop->first ? 'bg-yellow-400 text-navy-900' : 'bg-blue-50 text-blue-600' }}">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="{{ $kategoriStyle[$kategori]['icon'] }}"/></svg>
+                    </span>
+                    <span class="min-w-0">
+                        <span class="block text-sm font-extrabold leading-tight truncate">{{ $kategori }}</span>
+                        <span class="filter-sub block text-[11px] mt-1 {{ $loop->first ? 'text-white/70' : 'text-gray-500' }}">{{ $n }} foto</span>
+                    </span>
+                </button>
+            @endforeach
+        </div>
+    </section>
+
+    {{-- GRID GALERI --}}
+    <section class="px-8 md:px-16 pt-14 pb-16">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+            <div>
+                <span class="inline-block bg-blue-50 text-blue-600 text-xs font-bold px-3 py-1 rounded-full mb-3">Koleksi Foto</span>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-navy-900">Momen Berharga di Sekolah</h2>
+                <div class="w-16 h-1 rounded-full bg-gradient-to-r from-blue-600 to-yellow-400 mt-3"></div>
+            </div>
+            <p class="text-xs text-gray-400" id="result-count-galeri"></p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 auto-rows-[10rem] md:auto-rows-[13rem] grid-flow-dense gap-4" id="galeri-grid">
+            @foreach ($daftarGaleri as $index => $foto)
+                <button
+                    type="button"
+                    class="galeri-item relative rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group text-left bg-gray-200"
+                    data-kategori="{{ $foto['kategori'] }}"
+                    data-img="{{ asset('images/'.$foto['img']) }}"
+                    data-judul="{{ $foto['judul'] }}">
+                    <img src="{{ asset('images/'.$foto['img']) }}" alt="{{ $foto['judul'] }}" loading="lazy" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+
+                    {{-- gradasi bawah --}}
+                    <div class="absolute inset-0 bg-gradient-to-t from-navy-900/85 via-navy-900/10 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                    {{-- badge kategori --}}
+                    <span class="absolute top-3 left-3 {{ $kategoriStyle[$foto['kategori']]['badge'] }} text-[11px] font-semibold px-2.5 py-1 rounded-full shadow">{{ $foto['kategori'] }}</span>
+
+                    {{-- ikon perbesar --}}
+                    <span class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 text-navy-900 flex items-center justify-center opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>
+                    </span>
+
+                    {{-- judul --}}
+                    <div class="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <p class="text-white text-sm font-bold leading-snug">{{ $foto['judul'] }}</p>
+                    </div>
+
+                    {{-- garis aksen biru ke kuning --}}
+                    <span class="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-500 bg-gradient-to-r from-blue-600 to-yellow-400"></span>
+                </button>
+            @endforeach
+        </div>
+
+        {{-- EMPTY STATE --}}
+        <div id="empty-state-galeri" class="hidden text-center py-16">
+            <span class="inline-flex w-16 h-16 rounded-full bg-blue-50 text-blue-600 items-center justify-center mb-4">
+                <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="{{ $kategoriStyle['Semua']['icon'] }}"/></svg>
+            </span>
+            <p class="font-bold text-navy-900 mb-1">Foto belum tersedia</p>
+            <p class="text-sm text-gray-400">Belum ada foto untuk kategori ini.</p>
+        </div>
+    </section>
+
+    {{-- LIGHTBOX --}}
+    <div id="lightbox" class="fixed inset-0 z-[999] bg-navy-900/95 hidden items-center justify-center p-4 md:p-8">
+        <button id="lightbox-close" type="button" class="absolute top-5 right-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white text-2xl leading-none flex items-center justify-center transition" aria-label="Tutup">&times;</button>
+
+        <button id="lightbox-prev" type="button" class="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-yellow-400 hover:text-navy-900 text-white flex items-center justify-center transition" aria-label="Sebelumnya">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button id="lightbox-next" type="button" class="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-yellow-400 hover:text-navy-900 text-white flex items-center justify-center transition" aria-label="Berikutnya">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <div class="max-w-4xl w-full">
+            <img id="lightbox-img" src="" alt="" class="w-full max-h-[72vh] object-contain rounded-2xl shadow-2xl">
+            <div class="mt-5 text-center">
+                <span id="lightbox-kategori" class="inline-block bg-yellow-400 text-navy-900 text-xs font-bold px-3 py-1 rounded-full mb-2"></span>
+                <p id="lightbox-judul" class="text-white font-bold text-lg"></p>
+                <div class="w-16 h-1 rounded-full bg-gradient-to-r from-blue-600 to-yellow-400 mx-auto mt-3 mb-2"></div>
+                <p id="lightbox-counter" class="text-white/60 text-xs"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const filterButtons = document.querySelectorAll('.filter-btn-galeri');
+        const galeriGrid = document.getElementById('galeri-grid');
+        const galeriItems = Array.from(document.querySelectorAll('.galeri-item'));
+        const emptyStateGaleri = document.getElementById('empty-state-galeri');
+        const resultCount = document.getElementById('result-count-galeri');
+
+        const activeBtn = ['bg-navy-900', 'text-white', 'border-yellow-400'];
+        const inactiveBtn = ['bg-white', 'text-navy-900', 'border-transparent'];
+        const activeIcon = ['bg-yellow-400', 'text-navy-900'];
+        const inactiveIcon = ['bg-blue-50', 'text-blue-600'];
+
+        // Tata letak bento: tiap 7 foto yang tampil, foto ke-1 besar dan foto ke-5 melebar
+        const spanClasses = ['col-span-2', 'row-span-2', 'md:col-span-2', 'md:row-span-2'];
+        const applyLayout = (visibleItems) => {
+            galeriItems.forEach(el => el.classList.remove(...spanClasses));
+            visibleItems.forEach((el, k) => {
+                if (k % 7 === 0) el.classList.add('col-span-2', 'row-span-2');
+                else if (k % 7 === 4) el.classList.add('col-span-2');
+            });
+        };
+
+        const getVisibleItems = () => galeriItems.filter(el => el.style.display !== 'none');
+
+        const setActive = (btn) => {
+            filterButtons.forEach(b => {
+                const on = b === btn;
+                b.classList.remove(...(on ? inactiveBtn : activeBtn));
+                b.classList.add(...(on ? activeBtn : inactiveBtn));
+
+                const icon = b.querySelector('.filter-icon');
+                icon.classList.remove(...(on ? inactiveIcon : activeIcon));
+                icon.classList.add(...(on ? activeIcon : inactiveIcon));
+
+                const sub = b.querySelector('.filter-sub');
+                sub.classList.toggle('text-white/70', on);
+                sub.classList.toggle('text-gray-500', !on);
+            });
+        };
+
+        const applyFilter = (filter) => {
+            galeriItems.forEach(item => {
+                const match = filter === 'Semua' || item.dataset.kategori === filter;
+                item.style.display = match ? '' : 'none';
+            });
+            const visible = getVisibleItems();
+            applyLayout(visible);
+            emptyStateGaleri.classList.toggle('hidden', visible.length > 0);
+            galeriGrid.classList.toggle('hidden', visible.length === 0);
+            resultCount.textContent = 'Menampilkan ' + visible.length + ' foto';
+        };
+
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                setActive(btn);
+                applyFilter(btn.dataset.filter);
+            });
+        });
+
+        applyFilter('Semua');
+
+        // ===== Lightbox dengan navigasi =====
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxJudul = document.getElementById('lightbox-judul');
+        const lightboxKategori = document.getElementById('lightbox-kategori');
+        const lightboxCounter = document.getElementById('lightbox-counter');
+
+        let currentList = [];
+        let currentIndex = 0;
+
+        const showPhoto = (i) => {
+            currentIndex = (i + currentList.length) % currentList.length;
+            const item = currentList[currentIndex];
+            lightboxImg.src = item.dataset.img;
+            lightboxImg.alt = item.dataset.judul;
+            lightboxJudul.textContent = item.dataset.judul;
+            lightboxKategori.textContent = item.dataset.kategori;
+            lightboxCounter.textContent = (currentIndex + 1) + ' / ' + currentList.length;
+        };
+
+        const openLightbox = (item) => {
+            currentList = getVisibleItems();
+            showPhoto(currentList.indexOf(item));
+            lightbox.classList.remove('hidden');
+            lightbox.classList.add('flex');
+        };
+
+        const closeLightbox = () => {
+            lightbox.classList.add('hidden');
+            lightbox.classList.remove('flex');
+        };
+
+        galeriItems.forEach(item => item.addEventListener('click', () => openLightbox(item)));
+
+        document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+        document.getElementById('lightbox-prev').addEventListener('click', (e) => { e.stopPropagation(); showPhoto(currentIndex - 1); });
+        document.getElementById('lightbox-next').addEventListener('click', (e) => { e.stopPropagation(); showPhoto(currentIndex + 1); });
+
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) closeLightbox();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (lightbox.classList.contains('hidden')) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') showPhoto(currentIndex - 1);
+            if (e.key === 'ArrowRight') showPhoto(currentIndex + 1);
+        });
+    </script>
+
+</body>
+</html>
+
+===== app\Models\Galeri.php =====
+<?php // app/Models/Galeri.php
+namespace App\Models;
+
+use App\Models\Concerns\UrlGambar;
+use Illuminate\Database\Eloquent\Model;
+
+class Galeri extends Model
+{
+    use UrlGambar;
+    protected $fillable = ['judul', 'gambar'];
+}
+
+===== app\Models\Concerns\UrlGambar.php =====
+<?php
+
+namespace App\Models\Concerns;
+
+trait UrlGambar
+{
+    // Gambar bawaan (public/images/...) dan hasil upload (storage) sama-sama didukung.
+    public function urlGambar(string $field = 'gambar'): ?string
+    {
+        $v = $this->{$field};
+        if (! $v) {
+            return null;
+        }
+
+        $path = str_starts_with($v, 'images/') ? $v : 'storage/' . $v;
+
+        // Encode tiap segmen supaya nama file ber-spasi tetap terbaca
+        return asset(implode('/', array_map('rawurlencode', explode('/', $path))));
+    }
+}
+
+===== app\Http\Controllers\AdminGaleriController.php =====
+<?php // app/Http/Controllers/AdminGaleriController.php
+namespace App\Http\Controllers;
+
+use App\Models\Galeri;
+
+class AdminGaleriController extends AdminCrudController
+{
+    protected function cfg(): array
+    {
+        return [
+            'model' => Galeri::class, 'title' => 'Galeri', 'subtitle' => 'Kelola foto galeri sekolah',
+            'route' => 'admin.galeri', 'folder' => 'galeri', 'order' => ['id', 'desc'],
+            'columns' => [
+                ['name' => 'gambar', 'label' => 'Foto', 'type' => 'image'],
+                ['name' => 'judul', 'label' => 'Judul'],
+            ],
+            'fields' => [
+                ['name' => 'judul', 'label' => 'Judul foto', 'type' => 'text', 'rules' => 'required|string|max:255'],
+                ['name' => 'gambar', 'label' => 'Foto (maks 2 MB)', 'type' => 'image', 'rules' => 'nullable|image|max:2048'],
+            ],
+        ];
+    }
+}
+
+===== app\Http\Controllers\AdminCrudController.php =====
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+abstract class AdminCrudController extends Controller
+{
+    abstract protected function cfg(): array;
+
+    protected function beforeSave(array $data, $item): array
+    {
+        return $data;
+    }
+
+    public function index()
+    {
+        $c = $this->cfg();
+        $items = $c['model']::orderBy($c['order'][0], $c['order'][1])->get();
+        return view('admin.crud.index', compact('c', 'items'));
+    }
+
+    public function create()
+    {
+        return view('admin.crud.form', ['c' => $this->cfg(), 'item' => null]);
+    }
+
+    public function store(Request $request)
+    {
+        $c = $this->cfg();
+        $data = $request->validate($this->rules());
+        $data = $this->simpanGambar($request, $data, null);
+        $data = $this->beforeSave($data, null);
+
+        $c['model']::create($data);
+
+        return redirect()->route($c['route'])->with('success', $c['title'] . ' berhasil ditambahkan.');
+    }
+
+    public function edit($id)
+    {
+        $c = $this->cfg();
+        $item = $c['model']::findOrFail($id);
+        return view('admin.crud.form', compact('c', 'item'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $c = $this->cfg();
+        $item = $c['model']::findOrFail($id);
+        $data = $request->validate($this->rules());
+        $data = $this->simpanGambar($request, $data, $item);
+        $data = $this->beforeSave($data, $item);
+
+        $item->update($data);
+
+        return redirect()->route($c['route'])->with('success', $c['title'] . ' berhasil diperbarui.');
+    }
+
+    public function destroy($id)
+    {
+        $c = $this->cfg();
+        $item = $c['model']::findOrFail($id);
+
+        foreach ($c['fields'] as $f) {
+            if ($f['type'] === 'image') {
+                $this->hapusFile($item->{$f['name']});
+            }
+        }
+        $item->delete();
+
+        return redirect()->route($c['route'])->with('success', $c['title'] . ' berhasil dihapus.');
+    }
+
+    private function rules(): array
+    {
+        $rules = [];
+        foreach ($this->cfg()['fields'] as $f) {
+            $rules[$f['name']] = $f['rules'];
+        }
+        return $rules;
+    }
+
+    private function simpanGambar(Request $request, array $data, $item): array
+    {
+        $c = $this->cfg();
+        foreach ($c['fields'] as $f) {
+            if ($f['type'] !== 'image') {
+                continue;
+            }
+            $n = $f['name'];
+            if ($request->hasFile($n)) {
+                if ($item) {
+                    $this->hapusFile($item->$n);
+                }
+                $data[$n] = $request->file($n)->store($c['folder'], 'public');
+            } else {
+                unset($data[$n]); // tidak upload baru = gambar lama dipertahankan
+            }
+        }
+        return $data;
+    }
+
+    // Gambar bawaan di public/images tidak pernah dihapus
+    private function hapusFile(?string $path): void
+    {
+        if ($path && ! str_starts_with($path, 'images/')) {
+            Storage::disk('public')->delete($path);
+        }
+    }
+}
+
+===== resources\views\admin\crud\index.blade.php =====
+@extends('admin.layout')
+@section('title', $c['title'])
+
+@section('header')
+    <div>
+        <h1 class="font-bold text-navy-900 text-lg">{{ $c['title'] }}</h1>
+        <p class="text-xs text-gray-400">{{ $c['subtitle'] }}</p>
+    </div>
+    <a href="{{ route($c['route'] . '.create') }}"
+       class="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-700">
+        + Tambah {{ $c['title'] }}
+    </a>
+@endsection
+
+@section('content')
+    <div class="bg-white rounded-2xl shadow-sm overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-500 text-left">
+                <tr>
+                    @foreach ($c['columns'] as $col)
+                        <th class="px-6 py-3">{{ $col['label'] }}</th>
+                    @endforeach
+                    <th class="px-6 py-3 text-right">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($items as $item)
+                    <tr class="border-t">
+                        @foreach ($c['columns'] as $col)
+                            <td class="px-6 py-3">
+                                @if (($col['type'] ?? '') === 'image')
+                                    @if ($item->urlGambar($col['name']))
+                                        <img src="{{ $item->urlGambar($col['name']) }}" class="w-16 h-12 object-cover rounded" alt="">
+                                    @else
+                                        <span class="text-gray-300">-</span>
+                                    @endif
+                                @else
+                                    {{ \Illuminate\Support\Str::limit($item->{$col['name']}, 70) ?: '-' }}
+                                @endif
+                            </td>
+                        @endforeach
+                        <td class="px-6 py-3 text-right whitespace-nowrap">
+                            <a href="{{ route($c['route'] . '.edit', $item->id) }}" class="text-blue-600 font-semibold mr-3">Edit</a>
+                            <form action="{{ route($c['route'] . '.destroy', $item->id) }}" method="POST" class="inline"
+                                  onsubmit="return confirm('Hapus data ini?')">
+                                @csrf
+                                @method('DELETE')
+                                <button class="text-red-600 font-semibold">Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="{{ count($c['columns']) + 1 }}" class="px-6 py-8 text-center text-gray-400">Belum ada data.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+@endsection
+
+===== resources\views\admin\crud\form.blade.php =====
+@extends('admin.layout')
+@section('title', ($item ? 'Edit ' : 'Tambah ') . $c['title'])
+
+@section('header')
+    <div>
+        <h1 class="font-bold text-navy-900 text-lg">{{ $item ? 'Edit' : 'Tambah' }} {{ $c['title'] }}</h1>
+    </div>
+@endsection
+
+@section('content')
+    <form action="{{ $item ? route($c['route'] . '.update', $item->id) : route($c['route'] . '.store') }}"
+          method="POST" enctype="multipart/form-data"
+          class="bg-white rounded-2xl shadow-sm p-6 max-w-2xl space-y-4 text-sm">
+        @csrf
+        @if ($item) @method('PUT') @endif
+
+        @foreach ($c['fields'] as $f)
+            @php $val = old($f['name'], $item?->{$f['name']} ?? ''); @endphp
+            <div>
+                <label class="block font-semibold mb-1">{{ $f['label'] }}</label>
+
+                @if ($f['type'] === 'textarea')
+                    <textarea name="{{ $f['name'] }}" rows="{{ $f['rows'] ?? 4 }}" class="w-full border rounded-lg px-3 py-2">{{ $val }}</textarea>
+
+                @elseif ($f['type'] === 'select')
+                    <select name="{{ $f['name'] }}" class="w-full border rounded-lg px-3 py-2">
+                        @foreach ($f['options'] as $opt)
+                            <option value="{{ $opt }}" @selected($val === $opt)>{{ $opt }}</option>
+                        @endforeach
+                    </select>
+
+                @elseif ($f['type'] === 'image')
+                    @if ($item && $item->urlGambar($f['name']))
+                        <img src="{{ $item->urlGambar($f['name']) }}" class="w-40 rounded mb-2" alt="">
+                        <p class="text-xs text-gray-400 mb-1">Pilih file baru hanya jika ingin mengganti gambar.</p>
+                    @endif
+                    <input type="file" name="{{ $f['name'] }}" accept="image/*">
+
+                @else
+                    <input type="{{ $f['type'] }}" name="{{ $f['name'] }}" value="{{ $val }}"
+                           placeholder="{{ $f['placeholder'] ?? '' }}" class="w-full border rounded-lg px-3 py-2">
+                @endif
+            </div>
+        @endforeach
+
+        <div class="flex gap-3 pt-2">
+            <button class="bg-blue-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-700">Simpan</button>
+            <a href="{{ route($c['route']) }}" class="px-5 py-2 rounded-lg border">Batal</a>
+        </div>
+    </form>
+@endsection
+
+===== 2026_09_29_104209_create_galeris_table.php =====
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('galeris', function (Blueprint $table) {
+            $table->id();
+            $table->string('judul');
+            $table->text('keterangan')->nullable();
+            $table->string('gambar');
+            $table->date('tanggal')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('galeris');
+    }
+};
+
+===== DAFTAR public\images =====
+17 AGUSTUS.jpg
+baju batik.png
+baju muslim.png
+baju olga11.png
+baju pramuka.png
+baju putbu.png
+baju to.png
+baju ulga12.png
+band ekskul.jpg
+basket ekskul.JPG
+berita 1, kegiatan.jpg
+berita 2, kegiatan.jpg
+berita 3, informasi.jpg
+dmv ekskul.jpeg
+FUTSAL.jpg
+futsal1.jpg
+informasi.beranda.jpeg
+informasi.beranda2.jpeg
+JUARA 1 LKS TKJ.jpg
+JUARA 1 SILAT.jpg
+kebaya pangsit.png
+kepsek.jpeg
+lapangan miring.JPG
+logo band.png
+LOGO BASKET.png
+LOGO FUTSAL.png
+logo mpk.png
+LOGO OSIS.png
+logo padus.png
+LOGO PASKIB.png
+LOGO PMR.png
+LOGO PRAMUKA.png
+LOGO ROHIS.png
+logo silat.png
+logo tari.png
+LOGO.png
+logoo.png
+LOMBA SAGA 11.jpg
+mahardika logo.png
+mpk.jpeg
+mpls.JPG
+osis smk.jpeg
+OSIS.png
+paduss.png
+paskib ekskul.JPG
+PASKIB.JUARA.jpg
+pmr ekskul.jpeg
+PMR.PRESTASI.jpg
+PPLG.BERANDA.jpeg
+PPLG.png
+pramuka ekskul.jpeg
+rohis.jpeg
+sekolah.jpeg
+silat ekskul.jpeg
+smk.jpeg
+tarii.jpeg
+TJKT.BERANDA.jpeg
+TJKT.png
+TKRO.BERANDA.jpg
+TKRO.png
+TPFL.BERANDA.jpg
+TPFL.png
