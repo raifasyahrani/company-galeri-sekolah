@@ -12,8 +12,8 @@ class AdminAuthController extends Controller
      * Kredensial admin (hardcoded sesuai permintaan).
      * Untuk produksi sebaiknya dipindah ke tabel users + Hash::make().
      */
-    protected string $adminEmail = 'adminK4@gmail.com';
-    protected string $adminPassword = '4dm1nK4Bogor!';
+    protected string $adminEmail = 'admin@gmail.com';
+    protected string $adminPassword = '4dm1n1108!';
 
     public function showLogin(): View|RedirectResponse
     {

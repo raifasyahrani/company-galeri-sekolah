@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akun Saya - SMKN 4 Bogor</title>
+    <title>Akun Saya - PT Solusi Koneksi Anda</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans text-gray-800 bg-gray-100">
@@ -33,7 +33,7 @@
                             A
                         </span>
                         <div>
-                            <p class="text-white font-bold text-xl">Admin SMKN 4</p>
+                            <p class="text-white font-bold text-xl">Admin Solusi Koneksi</p>
                             <p class="text-blue-200 text-sm">{{ session('admin_email') }}</p>
                             <span class="inline-flex items-center gap-1.5 mt-2 bg-white/10 text-white text-[11px] font-semibold px-2.5 py-1 rounded-full">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>

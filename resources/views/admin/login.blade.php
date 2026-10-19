@@ -1,8 +1,8 @@
 @php
     // ====== PENGATURAN HUBUNGI IT ======
     // Ganti dengan nomor WhatsApp IT (boleh format 0812..., +62812..., atau 62812...)
-    $nomorIT = '0821 2262 2442';
-    $pesanWA = 'Halo IT SMKN 4 Bogor, saya lupa email/kata sandi akun admin. Mohon bantuannya untuk pemulihan akun. Terima kasih.';
+    $nomorIT = '0812 3456 7890';
+    $pesanWA = 'Halo IT PT Solusi Koneksi Anda, saya lupa email/kata sandi akun admin. Mohon bantuannya untuk pemulihan akun. Terima kasih.';
 
     // Rapikan nomor ke format internasional untuk wa.me
     $nomorWA = preg_replace('/\D+/', '', $nomorIT);
@@ -23,7 +23,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Admin - SMKN 4 Bogor</title>
+    <title>Login Admin - PT Solusi Koneksi Anda</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -56,19 +56,26 @@
 
     <div class="min-h-screen grid grid-cols-1 md:grid-cols-2">
 
-        {{-- PANEL KIRI: FOTO + INFO SEKOLAH --}}
-        <div class="relative hidden md:block">
-            <img src="{{ asset('images/lapangan miring.JPG') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
+        {{-- PANEL KIRI: FOTO + INFO PERUSAHAAN --}}
+        <div class="relative hidden md:block bg-navy-900">
+            @if (file_exists(public_path('images/hero.jpg')))
+                <img src="{{ asset('images/hero.jpg') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
+            @endif
             <div class="absolute inset-0 bg-gradient-to-br from-navy-900/90 via-navy-900/70 to-blue-800/60"></div>
 
             <div class="relative z-10 h-full flex flex-col justify-between p-12 text-white">
                 {{-- LOGO --}}
                 <div class="flex items-center gap-4">
                     <span class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white shadow-xl shadow-black/20 p-2">
-                        <img src="{{ asset('images/LOGO.png') }}" alt="Logo SMKN 4 Bogor" class="w-full h-full object-contain">
+                        <svg viewBox="0 0 40 40" class="w-full h-full rounded-xl" role="img" aria-label="Logo PT Solusi Koneksi Anda">
+                            <rect width="40" height="40" fill="#2159e0"/>
+                            <path d="M7 27c6-10 14-14 26-14" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+                            <path d="M7 20c6-7 14-10 26-10" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round" opacity=".5"/>
+                            <circle cx="31" cy="30" r="3.5" fill="#fbbf24"/>
+                        </svg>
                     </span>
                     <div class="leading-tight">
-                        <p class="font-extrabold tracking-wide">SMKN 4 BOGOR</p>
+                        <p class="font-extrabold tracking-wide">SOLUSI KONEKSI</p>
                         <p class="text-[11px] font-semibold tracking-[0.2em] text-blue-200">ADMIN PANEL</p>
                     </div>
                 </div>
@@ -77,10 +84,10 @@
                 <div>
                     <span class="block w-14 h-1.5 rounded-full bg-gradient-to-r from-blue-400 to-blue-200 mb-6"></span>
                     <h1 class="text-4xl lg:text-5xl font-extrabold leading-tight mb-5">
-                        Sistem Informasi<br>SMKN 4 Bogor
+                        Sistem Informasi<br>PT Solusi Koneksi Anda
                     </h1>
                     <p class="text-white/80 text-base max-w-md leading-relaxed">
-                        Mewujudkan lulusan yang kompeten, berkarakter, dan siap kerja.
+                        Kelola konten website perusahaan dengan mudah dan cepat.
                     </p>
                 </div>
 
@@ -91,20 +98,20 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
-                        <span class="leading-relaxed">Jalan Raya Tajur, Kampung Buntar, RT 02/RW 08, Kelurahan Muarasari, Kecamatan Bogor Selatan, Kota Bogor, Jawa Barat 16137.</span>
+                        <span class="leading-relaxed">{{ config('perusahaan.alamat') }}</span>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
                         <div class="flex items-center gap-3 bg-white/10 backdrop-blur-md ring-1 ring-white/15 rounded-2xl px-4 py-3">
                             <svg class="w-4 h-4 shrink-0 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                             </svg>
-                            <span>+62 821 226 2442</span>
+                            <span>{{ config('perusahaan.telepon') }}</span>
                         </div>
                         <div class="flex items-center gap-3 bg-white/10 backdrop-blur-md ring-1 ring-white/15 rounded-2xl px-4 py-3">
                             <svg class="w-4 h-4 shrink-0 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                             </svg>
-                            <span class="break-all">smkn4@smkn4bogor.sch.id</span>
+                            <span class="break-all">{{ config('perusahaan.email') }}</span>
                         </div>
                     </div>
                 </div>
@@ -121,9 +128,14 @@
                 {{-- Logo mobile (muncul saat layar kecil, panel kiri disembunyikan) --}}
                 <div class="text-center mb-8 md:hidden">
                     <span class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-navy-900 shadow-lg mb-3 p-2">
-                        <img src="{{ asset('images/LOGO.png') }}" alt="Logo SMKN 4 Bogor" class="w-full h-full object-contain">
+                        <svg viewBox="0 0 40 40" class="w-full h-full rounded-xl" role="img" aria-label="Logo PT Solusi Koneksi Anda">
+                            <rect width="40" height="40" fill="#2159e0"/>
+                            <path d="M7 27c6-10 14-14 26-14" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+                            <path d="M7 20c6-7 14-10 26-10" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round" opacity=".5"/>
+                            <circle cx="31" cy="30" r="3.5" fill="#fbbf24"/>
+                        </svg>
                     </span>
-                    <h1 class="text-navy-900 font-extrabold text-lg">SMKN 4 BOGOR</h1>
+                    <h1 class="text-navy-900 font-extrabold text-lg">SOLUSI KONEKSI</h1>
                 </div>
 
                 <div class="bg-white rounded-3xl shadow-2xl shadow-blue-900/10 ring-1 ring-slate-100 p-8 sm:p-10">
@@ -225,7 +237,7 @@
                         </button>
                     </form>
 
-                    <p class="text-center text-xs text-slate-400 mt-7">&copy; {{ date('Y') }} SMKN 4 Bogor. All rights reserved.</p>
+                    <p class="text-center text-xs text-slate-400 mt-7">&copy; {{ date('Y') }} PT Solusi Koneksi Anda. All rights reserved.</p>
                 </div>
 
                 <div class="text-center mt-6">
@@ -251,7 +263,7 @@
 
             <h3 id="judulLupa" class="text-xl font-extrabold text-navy-900 mb-2">Hubungi IT</h3>
             <p class="text-sm text-slate-500 leading-relaxed mb-7">
-                Lupa email atau kata sandi? Silakan hubungi tim IT SMKN 4 Bogor melalui WhatsApp untuk pemulihan akun.
+                Lupa email atau kata sandi? Silakan hubungi tim IT PT Solusi Koneksi Anda melalui WhatsApp untuk pemulihan akun.
             </p>
 
             <div class="grid grid-cols-2 gap-3">

@@ -1,10 +1,10 @@
 @extends('admin.layout')
-@section('title', 'Profil')
+@section('title', 'Profil Perusahaan')
 
 @section('header')
     <div>
-        <h1 class="font-bold text-navy-900 text-lg">Profil Sekolah</h1>
-        <p class="text-xs text-gray-400">Akun admin: {{ session('admin_email') }}</p>
+        <h1 class="font-bold text-navy-900 text-lg">Profil Perusahaan</h1>
+        <p class="text-xs text-gray-400">Halaman statis: hanya bisa diperbarui. Akun admin: {{ session('admin_email') }}</p>
     </div>
 @endsection
 
@@ -16,12 +16,12 @@
 
         <div class="grid grid-cols-3 gap-4">
             <div>
-                <label class="block font-semibold mb-1">Kepala sekolah</label>
-                <input type="text" name="kepala_sekolah" value="{{ old('kepala_sekolah', $profil->kepala_sekolah) }}" class="w-full border rounded-lg px-3 py-2">
+                <label class="block font-semibold mb-1">Direktur</label>
+                <input type="text" name="direktur" value="{{ old('direktur', $profil->direktur) }}" class="w-full border rounded-lg px-3 py-2">
             </div>
             <div>
-                <label class="block font-semibold mb-1">Akreditasi</label>
-                <input type="text" name="akreditasi" value="{{ old('akreditasi', $profil->akreditasi) }}" class="w-full border rounded-lg px-3 py-2">
+                <label class="block font-semibold mb-1">Legalitas (NIB/SIUP)</label>
+                <input type="text" name="legalitas" value="{{ old('legalitas', $profil->legalitas) }}" class="w-full border rounded-lg px-3 py-2">
             </div>
             <div>
                 <label class="block font-semibold mb-1">Tahun berdiri</label>

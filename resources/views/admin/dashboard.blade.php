@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - SMKN 4 Bogor</title>
+    <title>Dashboard Admin - PT Solusi Koneksi Anda</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans text-gray-800 bg-gray-100">
@@ -36,7 +36,7 @@
                             <div class="flex items-center gap-3">
                                 <span class="w-12 h-12 rounded-full bg-white text-blue-700 flex items-center justify-center font-extrabold text-lg">A</span>
                                 <div class="min-w-0">
-                                    <p class="font-bold leading-tight">Admin SMKN 4</p>
+                                    <p class="font-bold leading-tight">Admin Solusi Koneksi</p>
                                     <p class="text-xs text-blue-100 truncate">{{ session('admin_email') }}</p>
                                 </div>
                             </div>
@@ -81,16 +81,14 @@
                     $ada = fn ($nama) => \Illuminate\Support\Facades\Route::has($nama);
 
                     $stats = collect([
-                        ['label' => 'Total Berita', 'value' => $totalBerita ?? 0, 'route' => 'admin.berita', 'color' => 'blue',
-                         'icon' => 'M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v10a2 2 0 01-2 2z'],
-                        ['label' => 'Total Produk', 'value' => $totalProduk ?? 0, 'route' => 'admin.produk', 'color' => 'orange',
+                        ['label' => 'Total Layanan', 'value' => $totalLayanan ?? 0, 'route' => 'admin.layanan', 'color' => 'blue',
                          'icon' => 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'],
-                        ['label' => 'Total Jurusan', 'value' => $totalJurusan ?? 0, 'route' => 'admin.jurusan', 'color' => 'green',
-                         'icon' => 'M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.42A12.083 12.083 0 0121 19a12.083 12.083 0 01-9 5 12.083 12.083 0 01-9-5 12.083 12.083 0 012.84-8.42L12 14z'],
-                        ['label' => 'Total Ekstrakurikuler', 'value' => $totalEkskul ?? 0, 'route' => 'admin.ekskul', 'color' => 'yellow',
-                         'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+                        ['label' => 'Total Artikel', 'value' => $totalArtikel ?? 0, 'route' => 'admin.artikel', 'color' => 'orange',
+                         'icon' => 'M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l6 6v10a2 2 0 01-2 2z'],
                         ['label' => 'Foto Galeri', 'value' => $totalGaleri ?? 0, 'route' => 'admin.galeri', 'color' => 'purple',
                          'icon' => 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 8h16M4 8a2 2 0 00-2 2v8a2 2 0 002 2h16a2 2 0 002-2v-8a2 2 0 00-2-2M4 8V6a2 2 0 012-2h12a2 2 0 012 2v2'],
+                        ['label' => 'Pesan Masuk', 'value' => $totalPesan ?? 0, 'route' => 'admin.pesan', 'color' => 'green',
+                         'icon' => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
                     ])->filter(fn ($stat) => $ada($stat['route']));
 
                     $colorMap = [
@@ -113,13 +111,11 @@
                     $pensil = 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z';
 
                     $quickActions = collect([
-                        ['label' => 'Tambah Berita',  'route' => 'admin.berita.create',  'icon' => $plus],
-                        ['label' => 'Tambah Jurusan', 'route' => 'admin.jurusan.create', 'icon' => $plus],
-                        ['label' => 'Tambah Produk',  'route' => 'admin.produk.create',  'icon' => $plus],
+                        ['label' => 'Tambah Layanan', 'route' => 'admin.layanan.create', 'icon' => $plus],
+                        ['label' => 'Tambah Artikel', 'route' => 'admin.artikel.create', 'icon' => $plus],
                         ['label' => 'Tambah Foto',    'route' => 'admin.galeri.create',  'icon' => $plus],
-                        ['label' => 'Tambah Ekskul',  'route' => 'admin.ekskul.create',  'icon' => $plus],
-                        ['label' => 'Edit Jurusan',   'route' => 'admin.jurusan',        'icon' => $pensil],
                         ['label' => 'Edit Profil',    'route' => 'admin.profil',         'icon' => $pensil],
+                        ['label' => 'Lihat Pesan',    'route' => 'admin.pesan',          'icon' => $pensil],
                     ])->filter(fn ($action) => $ada($action['route']));
 
                     $hariIni = \Carbon\Carbon::now()->locale('id')->translatedFormat('l, d F Y');
@@ -134,8 +130,8 @@
                     <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-widest text-blue-200">{{ $hariIni }}</p>
-                            <h2 class="text-2xl md:text-3xl font-extrabold mt-1">Halo, Admin SMKN 4 Bogor</h2>
-                            <p class="text-sm text-blue-100 mt-1">Kelola seluruh konten website sekolah dari satu tempat.</p>
+                            <h2 class="text-2xl md:text-3xl font-extrabold mt-1">Halo, Admin</h2>
+                            <p class="text-sm text-blue-100 mt-1">Kelola seluruh konten website perusahaan dari satu tempat.</p>
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="rounded-2xl px-5 py-3 text-center" style="background:rgba(255,255,255,.12);">

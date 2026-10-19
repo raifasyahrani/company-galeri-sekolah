@@ -8,9 +8,6 @@ class GaleriPageController extends Controller
 {
     public function index()
     {
-        // Foto terbaru tampil paling atas
-        $galeriList = Galeri::orderByDesc('id')->get();
-
-        return view('galeri', compact('galeriList'));
+        return view('galeri', ['galeris' => Galeri::orderByDesc('id')->get()]);
     }
 }

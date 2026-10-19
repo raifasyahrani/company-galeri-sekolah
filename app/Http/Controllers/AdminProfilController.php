@@ -9,22 +9,22 @@ class AdminProfilController extends Controller
 {
     public function edit()
     {
-        return view('admin.profil', ['profil' => Profil::first()]);
+        return view('admin.profil', ['profil' => Profil::first() ?? Profil::create([])]);
     }
 
     public function update(Request $request)
     {
         $data = $request->validate([
-            'sejarah'        => 'nullable|string',
-            'visi'           => 'nullable|string',
-            'misi'           => 'nullable|string',
-            'kepala_sekolah' => 'nullable|string|max:255',
-            'akreditasi'     => 'nullable|string|max:20',
-            'tahun_berdiri'  => 'nullable|string|max:10',
+            'sejarah'       => 'nullable|string',
+            'visi'          => 'nullable|string',
+            'misi'          => 'nullable|string',
+            'direktur'      => 'nullable|string|max:255',
+            'legalitas'     => 'nullable|string|max:255',
+            'tahun_berdiri' => 'nullable|string|max:10',
         ]);
 
-        Profil::firstOrFail()->update($data);
+        (Profil::first() ?? Profil::create([]))->update($data);
 
-        return redirect()->route('admin.profil')->with('success', 'Profil berhasil diperbarui.');
+        return redirect()->route('admin.profil')->with('success', 'Profil perusahaan berhasil diperbarui.');
     }
 }

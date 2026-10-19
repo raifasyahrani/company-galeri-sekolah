@@ -1,786 +1,369 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil - SMKN 4 Bogor</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+@extends('layouts.public')
+@section('title', 'Profil Perusahaan')
 
-    {{-- ANIMASI HALAMAN PROFIL --}}
-    <style>
-        /* ---------- keyframes ---------- */
-        @keyframes pf-fade-up   { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
-        @keyframes pf-reveal    { from { opacity: 0; transform: translateY(34px) scale(.97); } to { opacity: 1; transform: none; } }
-        @keyframes pf-pop       { 0% { opacity: 0; transform: scale(.4); } 70% { opacity: 1; transform: scale(1.12); } 100% { opacity: 1; transform: scale(1); } }
-        @keyframes pf-kenburns  { from { transform: scale(1.04); } to { transform: scale(1.14) translate3d(-1.5%, -1%, 0); } }
-        @keyframes pf-float     { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-14px) rotate(4deg); } }
-        @keyframes pf-float-rev { 0%, 100% { transform: translateY(0) rotate(3deg); } 50% { transform: translateY(14px) rotate(-4deg); } }
-        @keyframes pf-twinkle   { 0%, 100% { transform: scale(1) rotate(0); filter: brightness(1); } 50% { transform: scale(1.3) rotate(18deg); filter: brightness(1.35); } }
-        @keyframes pf-wiggle    { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-12deg) scale(1.08); } 45% { transform: rotate(10deg) scale(1.08); } 70% { transform: rotate(-6deg); } }
-        @keyframes pf-pulse-soft{ 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
-        @keyframes pf-grow-x    { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@section('content')
+<style>
+    /* Animasi halaman profil (kelas berawalan "pf-" agar tidak bentrok dengan layout) */
+    @keyframes pfNaik { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+    .pf-in { opacity: 0; animation: pfNaik .9s cubic-bezier(.2, .7, .2, 1) forwards; animation-delay: var(--d, 0ms); }
 
-        /* ---------- hero (urutan muncul saat halaman dibuka) ---------- */
-        .pf-fade-up   { animation: pf-fade-up .8s cubic-bezier(.22, 1, .36, 1) both; animation-delay: var(--d, 0ms); }
-        .pf-pop       { animation: pf-pop .6s cubic-bezier(.34, 1.56, .64, 1) both; animation-delay: var(--d, 0ms); }
-        .pf-kenburns  { animation: pf-kenburns 20s ease-in-out infinite alternate; }
-        .pf-float     { animation: pf-float 7s ease-in-out infinite; animation-delay: var(--d, 0ms); }
-        .pf-float-rev { animation: pf-float-rev 8s ease-in-out infinite; animation-delay: var(--d, 0ms); }
-        .pf-twinkle   { animation: pf-twinkle 2.4s ease-in-out infinite; }
-        .pf-pulse-soft{ animation: pf-pulse-soft 2.4s ease-in-out infinite; }
+    @keyframes pfZoom { from { transform: scale(1.12); } to { transform: scale(1); } }
+    .pf-zoom { animation: pfZoom 14s ease-out forwards; }
 
-        /* ---------- muncul saat di-scroll ---------- */
-        .pf-reveal { opacity: 0; }
-        .pf-reveal.is-visible { animation: pf-reveal .75s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--i, 0) * 90ms); }
+    @keyframes pfMelayang { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    .pf-float      { animation: pfMelayang 6s ease-in-out infinite; }
+    .pf-float-slow { animation: pfMelayang 9s ease-in-out infinite reverse; }
 
-        /* garis aksen memanjang saat bagian terlihat */
-        .pf-garis { transform-origin: left; transform: scaleX(0); transition: transform .8s cubic-bezier(.22, 1, .36, 1) .3s; }
-        .is-visible .pf-garis { transform: scaleX(1); }
+    @keyframes pfGaris { from { width: 0; } to { width: 4rem; } }
+    .pf-garis { width: 0; height: 4px; border-radius: 9999px; background: #fbbf24; animation: pfGaris .9s .6s ease forwards; }
 
-        /* ikon bergoyang saat kartu di-hover */
-        .group:hover .pf-wiggle-hover { animation: pf-wiggle .7s ease-in-out; }
+    /* Muncul saat di-scroll */
+    .pf-js .pf-rv { opacity: 0; transform: translateY(28px); transition: opacity .8s ease, transform .8s ease; transition-delay: var(--d, 0ms); }
+    .pf-js .pf-rv.pf-on { opacity: 1; transform: none; }
 
-        /* kilau menyapu kartu saat di-hover */
-        .pf-shine::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            z-index: 5;
-            pointer-events: none;
-            background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .35) 50%, transparent 62%);
-            transform: translateX(-130%);
-            transition: transform .9s ease;
-        }
-        .pf-shine:hover::before { transform: translateX(130%); }
+    @media (prefers-reduced-motion: reduce) {
+        .pf-in { opacity: 1; animation: none; }
+        .pf-zoom, .pf-float, .pf-float-slow { animation: none; }
+        .pf-garis { width: 4rem; animation: none; }
+        .pf-js .pf-rv { opacity: 1; transform: none; transition: none; }
+    }
+</style>
+<script>document.documentElement.classList.add('pf-js');</script>
 
-        /* ---------- hormati pengguna yang mematikan animasi ---------- */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: .01ms !important;
-                animation-iteration-count: 1 !important;
-                animation-delay: 0ms !important;
-                transition-duration: .01ms !important;
-                transition-delay: 0ms !important;
-            }
-            .pf-reveal { opacity: 1; }
-            .pf-garis { transform: scaleX(1); }
-        }
-    </style>
-    <noscript><style>.pf-reveal { opacity: 1; } .pf-garis { transform: scaleX(1); }</style></noscript>
-</head>
-<body class="font-sans text-gray-800 bg-gray-100">
+@php
+    $profil    = $profil ?? new \App\Models\Profil();
+    $layanans  = $layanans ?? collect();
 
-    @include('partials.navbar')
+    // Misi disimpan satu baris per poin
+    $misi = array_values(array_filter(array_map('trim', explode("\n", (string) $profil->misi))));
 
-    {{-- HERO PROFIL --}}
-    <section class="grid grid-cols-1 md:grid-cols-2">
-        <div class="relative overflow-hidden bg-navy-900 text-white p-10 md:p-16 flex flex-col justify-center">
-            {{-- bola cahaya melayang --}}
-            <span class="pf-float absolute -top-10 -left-10 w-52 h-52 rounded-full bg-blue-500/20 blur-2xl pointer-events-none"></span>
-            <span class="pf-float-rev absolute bottom-6 right-10 w-36 h-36 rounded-full bg-yellow-400/10 blur-2xl pointer-events-none"></span>
+    // Foto gedung (opsional): gedung_pt.png, cadangan perusahaan.jpg
+    $foto = null;
+    foreach (['images/gedung_pt.png', 'images/perusahaan.jpg'] as $berkas) {
+        if (file_exists(public_path($berkas))) { $foto = asset($berkas); break; }
+    }
 
-            <span class="pf-fade-up relative text-blue-300 font-semibold mb-2 text-sm" style="--d: 100ms">Profil</span>
-            <h1 class="pf-fade-up relative text-3xl md:text-4xl font-extrabold mb-4" style="--d: 250ms">SMKN 4 BOGOR</h1>
-            <p class="pf-fade-up relative text-gray-300 leading-relaxed text-sm mb-5" style="--d: 450ms">
-                SMK Negeri 4 Bogor merupakan sekolah menengah kejuruan yang
-                berkomitmen mencetak generasi unggul, kompeten, berkarakter,
-                dan siap menghadapi dunia kerja maupun pendidikan lanjutan.
+    $statistik = config('perusahaan.statistik', []);
+    $wilayah   = config('perusahaan.wilayah', 'Jawa Barat dan sekitarnya');
+
+    $fakta = [
+        ['Tahun berdiri',   $profil->tahun_berdiri],
+        ['Direktur utama',  $profil->direktur],
+        ['Legalitas usaha', $profil->legalitas],
+        ['Wilayah layanan', $wilayah],
+    ];
+
+    $centang = 'M5 13l4 4L19 7';
+@endphp
+
+{{-- ============ HERO ============ --}}
+<section class="relative isolate overflow-hidden bg-navy-950 text-white">
+    @if ($foto)
+        <img src="{{ $foto }}" alt="Gedung {{ config('perusahaan.nama') }}" class="pf-zoom absolute inset-0 -z-10 h-full w-full object-cover object-[65%_35%]">
+    @endif
+    <div class="absolute inset-0 -z-10 bg-gradient-to-r from-navy-950 via-navy-950/85 to-navy-900/50"></div>
+    <div class="absolute inset-0 -z-10 opacity-60" style="background-image: radial-gradient(rgba(255,255,255,.09) 1px, transparent 1px); background-size: 28px 28px;"></div>
+    <div class="pf-float-slow absolute -right-24 -top-28 -z-10 h-80 w-80 rounded-full bg-amber-400/15 blur-3xl"></div>
+
+    <div class="mx-auto grid max-w-6xl items-center gap-12 px-6 pb-32 pt-16 md:pt-20 lg:grid-cols-5">
+        <div class="lg:col-span-3">
+            <nav class="pf-in flex items-center gap-2 text-sm text-blue-100" aria-label="Breadcrumb">
+                <a href="{{ route('welcome') }}" class="transition hover:text-white">Beranda</a>
+                <span class="text-blue-200/60">/</span>
+                <span class="font-semibold text-white">Profil</span>
+            </nav>
+
+            <h1 class="pf-in mt-5 font-display text-4xl font-bold leading-tight md:text-5xl" style="--d: 120ms">
+                {{ config('perusahaan.nama') }}
+                <span class="mt-1 block bg-gradient-to-r from-amber-300 to-amber-100 bg-clip-text text-transparent">Mitra infrastruktur TI terpercaya.</span>
+            </h1>
+            <div class="pf-garis mt-6"></div>
+
+            <p class="pf-in mt-6 max-w-xl text-lg leading-relaxed text-blue-100" style="--d: 300ms">
+                Mengenal sejarah, visi, misi, nilai, dan perjalanan kami dalam menghadirkan konektivitas yang andal untuk bisnis.
             </p>
-            <div class="relative flex items-center gap-3">
-                <span class="pf-pop inline-flex items-center gap-1.5 bg-white/10 border border-white/20 text-xs font-semibold px-3 py-1.5 rounded-full" style="--d: 700ms">
-                    <svg class="pf-twinkle w-3.5 h-3.5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2Z"/></svg>
-                    Terakreditasi A
-                </span>
-                <span class="pf-pop inline-flex items-center gap-1.5 bg-white/10 border border-white/20 text-xs font-semibold px-3 py-1.5 rounded-full" style="--d: 850ms">
-                    Berdiri sejak 1985
-                </span>
+
+            <div class="pf-in mt-8 flex flex-wrap gap-4" style="--d: 450ms">
+                <a href="{{ route('layanan') }}" class="rounded-full bg-amber-400 px-8 py-3.5 text-sm font-semibold text-navy-950 shadow-lg shadow-amber-400/20 transition hover:-translate-y-0.5 hover:bg-amber-300">Lihat layanan</a>
+                <a href="{{ route('kontak') }}" class="rounded-full border border-white/40 px-8 py-3.5 text-sm font-semibold backdrop-blur transition hover:bg-white/10">Hubungi kami</a>
             </div>
         </div>
-        <div class="h-64 md:h-auto overflow-hidden">
-            <img src="{{ asset('images/sekolah.jpeg') }}"
-                 alt="Gedung SMKN 4 Bogor"
-                 class="pf-kenburns w-full h-full object-cover">
-        </div>
-    </section>
 
-    {{-- AREA BLUR: TENTANG SEKOLAH + KEPALA SEKOLAH --}}
-    <section class="relative py-16">
-        <div class="absolute inset-0 overflow-hidden">
-            <img src="{{ asset('images/lapangan miring.JPG') }}" alt="" class="w-full h-full object-cover blur-md scale-110">
-            <div class="absolute inset-0 bg-navy-900/75"></div>
-        </div>
-
-        <div class="max-w-5xl mx-auto px-6 relative z-10 -mt-[9.5rem] md:-mt-[8.5rem]">
-
-            {{-- TENTANG SEKOLAH --}}
-            <div class="pf-reveal bg-white rounded-3xl shadow-2xl overflow-hidden">
-                {{-- garis aksen atas --}}
-                <div class="pf-garis h-1.5 bg-gradient-to-r from-blue-700 via-blue-400 to-yellow-400"></div>
-
-                <div class="p-8 md:p-10 grid grid-cols-1 md:grid-cols-2 gap-10 items-stretch">
-
-                    {{-- FOTO --}}
-                    <div class="relative">
-                        {{-- bingkai dekoratif di belakang foto --}}
-                        <div class="absolute -bottom-3 -left-3 w-full h-full rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200"></div>
-
-                        <div class="relative w-full h-80 md:h-full min-h-[420px] rounded-2xl overflow-hidden shadow-xl group">
-                            <img src="{{ asset('images/smk.jpeg') }}"
-                                 alt="Bangunan SMKN 4 Bogor"
-                                 class="w-full h-full object-cover object-[50%_25%] scale-125 group-hover:scale-[1.32] transition-transform duration-700">
-
-                            {{-- gradasi bawah --}}
-                            <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-navy-900/90 to-transparent"></div>
-
-                            {{-- badge atas --}}
-                            <span class="absolute top-4 left-4 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur text-navy-900 text-[11px] font-bold px-3 py-1.5 rounded-full shadow">
-                                <svg class="pf-twinkle w-3.5 h-3.5 text-yellow-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2Z"/></svg>
-                                Terakreditasi A
-                            </span>
-
-                            {{-- caption bawah --}}
-                            <div class="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white">
-                                <div>
-                                    <p class="text-[11px] tracking-widest uppercase text-blue-200">Sejak</p>
-                                    <p class="text-3xl font-extrabold leading-none">1985</p>
-                                </div>
-                                <p class="text-xs font-semibold text-right leading-snug text-gray-100">SMK Negeri 4<br>Kota Bogor</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- TEKS + STATISTIK --}}
-                    <div class="flex flex-col justify-center">
-                        <span class="self-start inline-block bg-blue-100 text-blue-700 text-[11px] font-bold tracking-widest uppercase px-3 py-1 rounded-full mb-3">
-                            Tentang Kami
-                        </span>
-                        <h2 class="text-2xl md:text-3xl font-extrabold text-navy-900 mb-2">Tentang Sekolah</h2>
-                        <div class="pf-garis w-16 h-1 rounded-full bg-gradient-to-r from-blue-600 to-yellow-400 mb-5"></div>
-
-                        <p class="text-gray-600 text-sm leading-relaxed mb-3">
-                            SMKN 4 Bogor berdiri sejak tahun <span class="font-semibold text-navy-900">1985</span> dengan tujuan mulia
-                            untuk memberikan pendidikan terbaik bagi masyarakat,
-                            khususnya dalam pengembangan <span class="font-semibold text-navy-900">keterampilan praktis</span> yang
-                            relevan dengan kebutuhan industri masa kini.
-                        </p>
-                        <p class="text-gray-600 text-sm leading-relaxed mb-7">
-                            Dengan kurikulum yang selalu disesuaikan dengan perkembangan
-                            teknologi dunia usaha, kami berkomitmen untuk terus
-                            berinovasi, kreatif, dan menjadi mitra terpercaya yang siap
-                            mewujudkan pendidikan yang berkualitas dan menjangkau
-                            tantangan global.
-                        </p>
-
-                        @php
-                            $statistik = [
-                                ['nilai' => '1500+', 'label' => 'Siswa', 'icon' => 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 100-8 4 4 0 000 8zm6 4v-2a4 4 0 00-3-3.87'],
-                                ['nilai' => '50+', 'label' => 'Tenaga Ahli', 'icon' => 'M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.42A12.083 12.083 0 0121 19a12.083 12.083 0 01-9 5 12.083 12.083 0 01-9-5 12.083 12.083 0 012.84-8.42L12 14z'],
-                                ['nilai' => '4', 'label' => 'Jurusan', 'icon' => 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'],
-                                ['nilai' => '9', 'label' => 'Ekstrakulikuler', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-                            ];
-                        @endphp
-
-                        <div class="grid grid-cols-2 gap-3">
-                            @foreach ($statistik as $stat)
-                                @php
-                                    // pisahkan angka dan akhiran (mis. "1500+" -> 1500 dan "+")
-                                    $angka = (int) preg_replace('/\D/', '', $stat['nilai']);
-                                    $akhiran = preg_replace('/\d/', '', $stat['nilai']);
-                                @endphp
-                                <div class="group relative bg-gray-50 hover:bg-white border border-gray-100 hover:border-blue-200 rounded-xl p-4 flex items-center gap-3 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-                                    <span class="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-blue-500 to-blue-300 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                                    <div class="pf-wiggle-hover bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-xl p-2.5 shrink-0 shadow-md shadow-blue-200">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $stat['icon'] }}" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="font-extrabold text-navy-900 text-xl leading-none"><span class="pf-count" data-target="{{ $angka }}" data-suffix="{{ $akhiran }}">{{ $stat['nilai'] }}</span></p>
-                                        <p class="text-[11px] text-gray-500 mt-1">{{ $stat['label'] }}</p>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- KEPALA SEKOLAH --}}
-            <div class="pf-reveal bg-white rounded-2xl shadow-lg p-8 mt-8 flex flex-col md:flex-row items-center md:items-start gap-6">
-                <img src="{{ asset('images/kepsek.jpeg') }}"
-                     alt="Kepala Sekolah"
-                     class="w-40 h-56 md:w-44 md:h-60 rounded-xl object-cover object-top shrink-0 shadow-md hover:scale-105 hover:-rotate-2 transition-transform duration-500">
-                <div class="text-center md:text-left">
-                    <h3 class="font-bold text-navy-900 mb-1">Kepala Sekolah</h3>
-                    <p class="text-blue-600 font-semibold text-sm">Drs. Mulya Murprihartono, M.Si.</p>
-                    <p class="text-xs text-gray-400 mb-3">Kepala SMKN 4 Bogor</p>
-                    <p class="text-gray-600 text-sm italic leading-relaxed">
-                        "Pendidikan adalah kunci untuk membuka masa depan. Kami di
-                        SMKN 4 Bogor berkomitmen tidak hanya mencetak tenaga yang
-                        terampil, tetapi juga individu yang memiliki integritas,
-                        kreativitas, dan semangat pantang menyerah untuk menghadapi
-                        tantangan global."
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {{-- VISI & MISI --}}
-    <section class="relative bg-white py-20 overflow-hidden">
-        {{-- dekorasi latar --}}
-        <div class="pf-float absolute -top-24 -left-24 w-72 h-72 bg-blue-100 rounded-full blur-3xl opacity-60"></div>
-        <div class="pf-float-rev absolute -bottom-24 -right-24 w-80 h-80 bg-blue-50 rounded-full blur-3xl"></div>
-
-        <div class="max-w-5xl mx-auto px-6 relative">
-
-            {{-- Judul section --}}
-            <div class="pf-reveal text-center mb-12">
-                <span class="inline-block bg-blue-100 text-blue-700 text-[11px] font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4">
-                    Landasan Kebijakan
-                </span>
-                <h2 class="text-2xl md:text-3xl font-extrabold text-navy-900 mb-3">Visi &amp; Misi Sekolah</h2>
-                <p class="text-sm text-gray-500 max-w-xl mx-auto leading-relaxed">
-                    Arah dan komitmen unggul SMKN 4 Bogor dalam mencetak lulusan yang berkarakter, kompeten, dan siap bersaing.
-                </p>
-            </div>
-
-            {{-- VISI --}}
-            <div class="pf-reveal relative bg-navy-900 rounded-3xl p-8 md:p-12 text-white shadow-xl overflow-hidden">
-                <div class="pf-float absolute -top-16 -right-16 w-56 h-56 bg-blue-500/20 rounded-full"></div>
-                <div class="pf-float-rev absolute -bottom-20 -left-10 w-64 h-64 bg-blue-400/10 rounded-full"></div>
-                <svg class="pf-float-rev absolute top-6 right-8 w-20 h-20 text-white/10" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-3.638 3.995-5.849h-4v-10h9.983zm14.017 0v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-3.638 3.995-5.849h-4v-10h9.983z"/>
-                </svg>
-
-                <div class="relative">
-                    <div class="flex items-center gap-3 mb-5">
-                        <span class="pf-pulse-soft w-11 h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-yellow-400">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                        </span>
-                        <h3 class="text-sm font-bold tracking-widest uppercase text-blue-300">Visi Sekolah</h3>
-                    </div>
-
-                    <p class="text-xl md:text-2xl font-semibold leading-relaxed md:leading-relaxed max-w-3xl">
-                        "Terwujudnya SMK Negeri 4 Bogor sebagai lembaga pendidikan vokasi yang
-                        berakhlak mulia, unggul, kompeten, berdaya saing global, dan berwawasan lingkungan."
-                    </p>
-
-                    <div class="flex flex-wrap gap-2 mt-7">
-                        @foreach (['Berakhlak Mulia', 'Unggul', 'Kompeten', 'Berdaya Saing Global', 'Berwawasan Lingkungan'] as $kata)
-                            <span style="--i: {{ $loop->index }}" class="pf-reveal inline-flex items-center gap-1.5 bg-white/10 border border-white/20 text-xs font-semibold px-3 py-1.5 rounded-full hover:bg-white/20 hover:-translate-y-0.5 transition-all duration-300">
-                                <span class="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
-                                {{ $kata }}
-                            </span>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            {{-- MISI --}}
-            <div class="mt-14">
-                <div class="pf-reveal flex items-center gap-4 mb-8">
-                    <h3 class="text-sm font-bold tracking-widest uppercase text-navy-900 whitespace-nowrap">4 Misi Strategis Institusi</h3>
-                    <span class="pf-garis flex-1 h-px bg-gradient-to-r from-blue-300 to-transparent"></span>
-                </div>
-
-                @php
-                    $misi = [
-                        [
-                            'judul' => 'Karakter & Budi Pekerti',
-                            'deskripsi' => 'Menumbuhkembangkan keimanan, kejujuran, dan disiplin tinggi melalui pembiasaan budaya positif Profil Pelajar Pancasila.',
-                            'icon' => 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
-                        ],
-                        [
-                            'judul' => 'Teaching Factory (TEFA)',
-                            'deskripsi' => 'Mengintegrasikan kurikulum berbasis industri nyata agar siswa mengalami alur produksi riil sebelum memasuki bursa kerja.',
-                            'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z',
-                        ],
-                        [
-                            'judul' => 'Sarana Terakreditasi Modern',
-                            'deskripsi' => 'Menyediakan fasilitas laboratorium dan workshop mutakhir yang sesuai dengan standarisasi sertifikasi industri global.',
-                            'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
-                        ],
-                        [
-                            'judul' => 'Kemitraan DUDI & Global',
-                            'deskripsi' => 'Memperluas jejaring magang kerja dalam dan luar negeri serta program rekrutmen langsung melalui Bursa Kerja Khusus (BKK).',
-                            'icon' => 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9',
-                        ],
-                    ];
-                @endphp
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    @foreach ($misi as $i => $item)
-                        <div style="--i: {{ $i % 2 }}" class="pf-reveal group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1.5 hover:border-blue-200 transition-all duration-300 p-6 overflow-hidden">
-                            {{-- angka besar sebagai watermark --}}
-                            <span class="absolute -top-3 right-4 text-8xl font-black text-gray-100 group-hover:text-blue-100 transition-colors select-none">
-                                {{ $i + 1 }}
-                            </span>
-                            {{-- garis aksen bawah --}}
-                            <span class="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full bg-gradient-to-r from-blue-500 to-blue-300 transition-all duration-500"></span>
-
-                            <div class="relative">
-                                <div class="pf-wiggle-hover w-12 h-12 rounded-xl bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300 flex items-center justify-center mb-5">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}" />
-                                    </svg>
-                                </div>
-                                <p class="text-[11px] font-bold text-blue-600 tracking-widest uppercase mb-1">Misi {{ $i + 1 }}</p>
-                                <h4 class="font-bold text-navy-900 mb-2 leading-snug">{{ $item['judul'] }}</h4>
-                                <p class="text-sm text-gray-500 leading-relaxed">{{ $item['deskripsi'] }}</p>
-                            </div>
+        {{-- Kartu kaca: data dari tabel profil --}}
+        <div class="pf-in hidden lg:col-span-2 lg:block" style="--d: 350ms">
+            <div class="pf-float rounded-3xl bg-white/10 p-7 shadow-2xl ring-1 ring-white/20 backdrop-blur-md">
+                <p class="text-xs font-semibold uppercase tracking-wider text-amber-300">Data perusahaan</p>
+                <dl class="mt-5 space-y-4">
+                    @foreach (array_slice($fakta, 0, 3) as [$label, $nilai])
+                        <div class="flex items-center justify-between gap-4 border-b border-white/10 pb-4 last:border-0 last:pb-0">
+                            <dt class="text-sm text-blue-100/80">{{ $label }}</dt>
+                            <dd class="text-right font-display text-sm font-semibold">{{ $nilai ?: '-' }}</dd>
                         </div>
                     @endforeach
-                </div>
-            </div>
-
-        </div>
-    </section>
-
-    {{-- SERAGAM SEKOLAH --}}
-    <section class="relative bg-gradient-to-b from-gray-100 via-white to-gray-100 py-20 overflow-hidden">
-        <div class="pf-float absolute top-10 -right-24 w-72 h-72 bg-blue-100 rounded-full blur-3xl opacity-70"></div>
-        <div class="pf-float-rev absolute bottom-10 -left-24 w-72 h-72 bg-yellow-100 rounded-full blur-3xl opacity-60"></div>
-
-        <div class="max-w-6xl mx-auto px-6 relative">
-            <div class="pf-reveal text-center mb-12">
-                <span class="inline-block bg-blue-100 text-blue-700 text-[11px] font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4">
-                    Tata Tertib
-                </span>
-                <h2 class="text-2xl md:text-3xl font-extrabold text-navy-900 mb-3">Seragam Sekolah</h2>
-                <p class="text-sm text-gray-500 max-w-xl mx-auto leading-relaxed">
-                    Ketentuan seragam siswa SMKN 4 Bogor yang digunakan setiap hari selama satu minggu.
-                </p>
-            </div>
-
-            @php
-                $hariIni = \Carbon\Carbon::now('Asia/Jakarta')->locale('id')->isoFormat('dddd');
-
-                $seragamHarian = [
-                    [
-                        'hari' => 'Senin',
-                        'nama' => 'Seragam Putih Biru (PUTBU) Lengkap',
-                        'img' => 'baju putbu.png',
-                        'atribut' => ['Sabuk', 'Topi', 'Dasi', 'Sepatu hitam bertali', 'Kaos kaki wajib putih'],
-                    ],
-                    [
-                        'hari' => 'Selasa',
-                        'nama' => 'Seragam Batik',
-                        'img' => 'baju batik.png',
-                        'atribut' => ['Bawahan hitam', 'Sepatu hitam bertali', 'Kaos kaki hitam/putih'],
-                    ],
-                    [
-                        'hari' => 'Rabu',
-                        'nama' => 'Seragam Pramuka',
-                        'img' => 'baju pramuka.png',
-                        'atribut' => ['Sepatu hitam bertali', 'Kaos kaki hitam/putih'],
-                    ],
-                    [
-                        'hari' => 'Kamis',
-                        'nama' => 'Kebaya Putih',
-                        'img' => 'kebaya pangsit.png',
-                        'atribut' => ['Sepatu hitam bertali', 'Kaos kaki hitam/putih'],
-                    ],
-                    [
-                        'hari' => 'Jumat',
-                        'nama' => 'Baju Muslim',
-                        'img' => 'baju muslim.png',
-                        'atribut' => ['Sepatu hitam bertali', 'Kaos kaki hitam/putih'],
-                    ],
-                ];
-            @endphp
-
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-                @foreach ($seragamHarian as $seragam)
-                    @php $aktif = strcasecmp($seragam['hari'], $hariIni) === 0; @endphp
-                    <div style="--i: {{ $loop->index }}" class="pf-reveal pf-shine group relative bg-white rounded-2xl overflow-hidden border {{ $aktif ? 'border-blue-500 ring-4 ring-blue-100 shadow-xl' : 'border-gray-100 shadow-md' }} hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
-                        <div class="relative overflow-hidden bg-gray-100">
-                            <img src="{{ asset('images/'.$seragam['img']) }}" alt="Seragam Hari {{ $seragam['hari'] }}" class="w-full h-72 object-cover object-top group-hover:scale-105 transition-transform duration-700">
-                            <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/30 to-transparent"></div>
-                            <span class="absolute top-3 left-3 bg-navy-900 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md">
-                                {{ $seragam['hari'] }}
-                            </span>
-                            @if ($aktif)
-                                <span class="pf-pulse-soft absolute top-3 right-3 inline-flex items-center gap-1 bg-yellow-400 text-navy-900 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-navy-900 animate-pulse"></span>
-                                    HARI INI
-                                </span>
-                            @endif
-                        </div>
-                        <div class="p-4">
-                            <h3 class="font-bold text-navy-900 text-sm mb-3 leading-snug min-h-[2.5rem]">{{ $seragam['nama'] }}</h3>
-                            <div class="flex flex-wrap gap-1.5">
-                                @foreach ($seragam['atribut'] as $atribut)
-                                    <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-[11px] font-medium px-2.5 py-1 rounded-full">
-                                        <svg class="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg>
-                                        {{ $atribut }}
-                                    </span>
-                                @endforeach
-                            </div>
-                        </div>
-                        <span class="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full bg-gradient-to-r from-blue-600 to-yellow-400 transition-all duration-500"></span>
-                    </div>
-                @endforeach
-            </div>
-
-            {{-- BAJU OLAHRAGA --}}
-            @php
-                $bajuOlahraga = [
-                    [
-                        'label' => 'Angkatan 2024',
-                        'kelas' => 'Kelas XII',
-                        'img' => 'baju ulga12.png',
-                    ],
-                    [
-                        'label' => 'Angkatan 2025 & 2026',
-                        'kelas' => 'Kelas XI & X',
-                        'img' => 'baju olga11.png',
-                    ],
-                ];
-            @endphp
-
-            <div class="pf-reveal relative mt-14 bg-navy-900 rounded-3xl p-8 md:p-10 overflow-hidden shadow-xl">
-                <div class="pf-float absolute -top-20 -right-16 w-64 h-64 bg-blue-500/20 rounded-full"></div>
-                <div class="pf-float-rev absolute -bottom-24 -left-10 w-64 h-64 bg-blue-400/10 rounded-full"></div>
-
-                <div class="relative grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-                    <div class="text-white">
-                        <span class="pf-pulse-soft w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-yellow-400 mb-4">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                        </span>
-                        <h3 class="text-xl font-bold mb-2">Baju Olahraga</h3>
-                        <p class="text-sm text-gray-300 leading-relaxed mb-4">
-                            Seragam olahraga siswa SMKN 4 Bogor: atasan putih, bawahan hitam.
-                        </p>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="inline-flex items-center gap-1.5 bg-white/10 border border-white/20 text-xs font-semibold px-3 py-1.5 rounded-full">
-                                <span class="w-2 h-2 rounded-full bg-white"></span> Atasan putih
-                            </span>
-                            <span class="inline-flex items-center gap-1.5 bg-white/10 border border-white/20 text-xs font-semibold px-3 py-1.5 rounded-full">
-                                <span class="w-2 h-2 rounded-full bg-gray-900 ring-1 ring-white/60"></span> Bawahan hitam
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        @foreach ($bajuOlahraga as $olga)
-                            <div style="--i: {{ $loop->index }}" class="pf-reveal pf-shine group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-300">
-                                <div class="relative overflow-hidden">
-                                    <img src="{{ asset('images/'.$olga['img']) }}" alt="Baju Olahraga {{ $olga['label'] }}" class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-700">
-                                    <span class="absolute top-3 left-3 bg-yellow-400 text-navy-900 text-[11px] font-extrabold px-3 py-1 rounded-full shadow">
-                                        {{ $olga['kelas'] }}
-                                    </span>
-                                </div>
-                                <div class="p-4 text-center">
-                                    <p class="text-sm font-bold text-navy-900">{{ $olga['label'] }}</p>
-                                    <p class="text-[11px] text-gray-500 mt-0.5">Atasan putih, bawahan hitam</p>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
+                </dl>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    {{-- PROGRAM JURUSAN --}}
-    <section id="jurusan-preview" class="relative bg-white py-20 scroll-mt-24 overflow-hidden">
-        <div class="pf-float absolute -top-20 -left-20 w-72 h-72 bg-blue-50 rounded-full blur-3xl"></div>
+{{-- ============ ANGKA KINERJA ============ --}}
+@if (count($statistik))
+<div class="relative z-10 mx-auto -mt-16 max-w-6xl px-6">
+    <dl class="pf-rv grid grid-cols-2 overflow-hidden rounded-2xl bg-white shadow-2xl shadow-navy-900/15 ring-1 ring-slate-200/70 md:grid-cols-4">
+        @foreach ($statistik as $i => [$angka, $label])
+            <div class="px-8 py-8 {{ $i > 0 ? 'md:border-l md:border-slate-200' : '' }} {{ $i > 1 ? 'border-t border-slate-200 md:border-t-0' : '' }}">
+                <dt class="font-display text-3xl font-semibold text-navy-800">{{ $angka }}</dt>
+                <dd class="mt-1.5 text-sm text-slate-500">{{ $label }}</dd>
+            </div>
+        @endforeach
+    </dl>
+</div>
+@endif
 
-        <div class="max-w-5xl mx-auto px-6 relative">
-            <div class="pf-reveal flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
+{{-- ============ TENTANG PERUSAHAAN ============ --}}
+<section class="mx-auto grid max-w-6xl items-center gap-16 px-6 py-28 lg:grid-cols-2">
+    <div class="pf-rv relative mx-auto w-full max-w-md lg:mx-0">
+        <div class="absolute -left-5 -top-5 h-full w-full rounded-t-[10rem] rounded-b-3xl border-2 border-amber-400"></div>
+        <div class="relative aspect-[4/5] overflow-hidden rounded-t-[10rem] rounded-b-3xl bg-gradient-to-br from-navy-900 to-navy-700 shadow-2xl">
+            @if ($foto)
+                <img src="{{ $foto }}" alt="Kantor {{ config('perusahaan.nama') }}" class="h-full w-full object-cover object-[60%_40%]">
+            @else
+                <div class="flex h-full items-center justify-center font-display text-7xl font-bold text-white/20">{{ config('perusahaan.singkat') }}</div>
+            @endif
+        </div>
+        @if ($profil->tahun_berdiri)
+            <div class="pf-float absolute -bottom-6 right-4 rounded-2xl bg-white px-6 py-4 shadow-xl ring-1 ring-slate-200">
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Sejak</p>
+                <p class="font-display text-3xl font-bold text-navy-900">{{ $profil->tahun_berdiri }}</p>
+            </div>
+        @endif
+    </div>
+
+    <div class="pf-rv" style="--d: 120ms">
+        <div class="flex items-center gap-3">
+            <span class="h-px w-8 bg-amber-400"></span>
+            <p class="text-sm font-semibold tracking-wide text-navy-700">Tentang perusahaan</p>
+        </div>
+        <h2 class="mt-3 font-display text-3xl font-bold leading-tight text-navy-950 md:text-4xl">Mitra teknologi yang tumbuh bersama pelanggannya.</h2>
+        <p class="mt-6 whitespace-pre-line leading-relaxed text-slate-600">{{ $profil->sejarah ?: '-' }}</p>
+
+        <dl class="mt-8 grid gap-x-8 gap-y-5 border-t border-slate-200 pt-6 sm:grid-cols-2">
+            @foreach ($fakta as [$label, $nilai])
                 <div>
-                    <span class="inline-block bg-blue-100 text-blue-700 text-[11px] font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4">
-                        Bidang Keahlian
-                    </span>
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-navy-900 mb-3">Program Jurusan</h2>
-                    <p class="text-sm text-gray-500 max-w-xl leading-relaxed">
-                        Empat bidang keahlian yang dirancang untuk mempersiapkan siswa siap kerja, siap berwirausaha, dan siap melanjutkan pendidikan.
-                    </p>
+                    <dt class="text-sm text-slate-500">{{ $label }}</dt>
+                    <dd class="mt-1 font-display font-bold text-navy-950">{{ $nilai ?: '-' }}</dd>
                 </div>
-                <a href="{{ route('jurusan') }}" class="group inline-flex items-center gap-2 self-start md:self-auto bg-navy-900 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-md transition-colors">
-                    Lihat Detail Jurusan
-                    <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            @endforeach
+        </dl>
+    </div>
+</section>
+
+{{-- ============ VISI & MISI ============ --}}
+<section class="bg-slate-50">
+    <div class="mx-auto max-w-6xl px-6 py-28">
+        <div class="pf-rv mx-auto mb-14 max-w-2xl text-center">
+            <div class="flex items-center justify-center gap-3">
+                <span class="h-px w-8 bg-amber-400"></span>
+                <p class="text-sm font-semibold tracking-wide text-navy-700">Visi &amp; misi</p>
+                <span class="h-px w-8 bg-amber-400"></span>
+            </div>
+            <h2 class="mt-3 font-display text-3xl font-bold text-navy-950 md:text-4xl">Arah dan komitmen kami</h2>
+        </div>
+
+        <div class="grid gap-8 lg:grid-cols-5">
+            <div class="pf-rv relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy-950 via-navy-900 to-navy-700 p-9 text-white shadow-xl lg:col-span-2">
+                <div class="pf-float-slow absolute -right-12 -top-12 h-44 w-44 rounded-full bg-white/10"></div>
+                <div class="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-amber-400/20"></div>
+                <p class="relative text-sm font-semibold uppercase tracking-wider text-amber-300">Visi</p>
+                <p class="relative mt-4 font-display text-2xl font-semibold leading-snug">{{ $profil->visi ?: '-' }}</p>
+            </div>
+
+            <div class="lg:col-span-3">
+                <p class="mb-4 text-sm font-semibold uppercase tracking-wider text-navy-700">Misi</p>
+                <ol class="space-y-4">
+                    @forelse ($misi as $i => $poin)
+                        <li class="pf-rv group flex gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-amber-400/60" style="--d: {{ $i * 100 }}ms">
+                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-400 font-display font-bold text-navy-950">{{ $i + 1 }}</span>
+                            <p class="leading-relaxed text-slate-700">{{ $poin }}</p>
+                        </li>
+                    @empty
+                        <li class="rounded-2xl bg-white p-5 text-slate-500 ring-1 ring-slate-200">Misi belum diisi. Isi lewat menu Profil di halaman admin.</li>
+                    @endforelse
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+{{-- ============ NILAI PERUSAHAAN ============ --}}
+<section class="mx-auto max-w-6xl px-6 py-28">
+    <div class="pf-rv mx-auto mb-14 max-w-2xl text-center">
+        <div class="flex items-center justify-center gap-3">
+            <span class="h-px w-8 bg-amber-400"></span>
+            <p class="text-sm font-semibold tracking-wide text-navy-700">Nilai perusahaan</p>
+            <span class="h-px w-8 bg-amber-400"></span>
+        </div>
+        <h2 class="mt-3 font-display text-3xl font-bold text-navy-950 md:text-4xl">Prinsip yang kami pegang</h2>
+    </div>
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        @foreach (config('perusahaan.nilai', []) as $i => [$judul, $isi, $ikon])
+            <div class="pf-rv group rounded-2xl bg-white p-7 shadow-md ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1.5 hover:shadow-xl" style="--d: {{ $i * 110 }}ms">
+                <span class="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-navy-700 to-navy-900 text-white shadow-lg shadow-navy-700/30 transition group-hover:scale-110">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $ikon }}"/></svg>
+                </span>
+                <p class="mt-5 font-display text-lg font-bold text-navy-950">{{ $judul }}</p>
+                <span class="mt-3 block h-0.5 w-8 rounded-full bg-amber-400 transition-all duration-300 group-hover:w-14"></span>
+                <p class="mt-3 text-sm leading-relaxed text-slate-600">{{ $isi }}</p>
+            </div>
+        @endforeach
+    </div>
+</section>
+
+{{-- ============ KEUNGGULAN (gelap) ============ --}}
+<section class="relative overflow-hidden bg-navy-950 text-white">
+    <div class="absolute inset-0 opacity-50" style="background-image: radial-gradient(rgba(255,255,255,.08) 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <div class="absolute -right-24 top-0 h-80 w-80 rounded-full bg-navy-700/40 blur-3xl"></div>
+    <svg class="pf-float-slow pointer-events-none absolute -right-10 bottom-6 hidden h-80 w-80 opacity-20 lg:block" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+        <path d="M60 290 C 120 190, 220 140, 350 130" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+        <path d="M60 230 C 120 150, 220 105, 350 95" stroke="#ffffff" stroke-opacity=".5" stroke-width="14" stroke-linecap="round"/>
+        <circle cx="320" cy="292" r="18" fill="#fbbf24"/>
+    </svg>
+
+    <div class="relative mx-auto max-w-6xl px-6 py-28">
+        <div class="pf-rv max-w-2xl">
+            <div class="flex items-center gap-3">
+                <span class="h-px w-8 bg-amber-400"></span>
+                <p class="text-sm font-semibold tracking-wide text-amber-300">Keunggulan kami</p>
+            </div>
+            <h2 class="mt-3 font-display text-3xl font-bold leading-tight md:text-4xl">Alasan pelanggan mempercayakan jaringannya kepada kami</h2>
+        </div>
+        <div class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            @foreach (config('perusahaan.keunggulan', []) as $i => [$judul, $isi])
+                <div class="pf-rv group rounded-2xl bg-white/5 p-7 ring-1 ring-white/10 backdrop-blur transition duration-300 hover:-translate-y-1.5 hover:bg-white/10 hover:ring-amber-400/40" style="--d: {{ $i * 110 }}ms">
+                    <p class="font-display text-4xl font-semibold text-amber-400">0{{ $i + 1 }}</p>
+                    <span class="mt-4 block h-0.5 w-8 rounded-full bg-amber-400 transition-all duration-300 group-hover:w-16"></span>
+                    <p class="mt-5 font-display text-lg font-semibold">{{ $judul }}</p>
+                    <p class="mt-2 text-sm leading-relaxed text-blue-100/80">{{ $isi }}</p>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+{{-- ============ BIDANG USAHA (dari database layanan) ============ --}}
+@if ($layanans->isNotEmpty())
+<section class="bg-slate-50">
+    <div class="mx-auto grid max-w-6xl gap-12 px-6 py-28 lg:grid-cols-5">
+        <div class="pf-rv lg:col-span-2">
+            <div class="flex items-center gap-3">
+                <span class="h-px w-8 bg-amber-400"></span>
+                <p class="text-sm font-semibold tracking-wide text-navy-700">Bidang usaha</p>
+            </div>
+            <h2 class="mt-3 font-display text-3xl font-bold leading-tight text-navy-950 md:text-4xl">Layanan yang menopang bisnis Anda.</h2>
+            <p class="mt-4 leading-relaxed text-slate-600">Dari koneksi internet hingga keamanan jaringan, kami menyediakan layanan terpadu agar Anda fokus pada pertumbuhan usaha.</p>
+            <a href="{{ route('layanan') }}" class="mt-8 inline-block rounded-full bg-navy-900 px-7 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-navy-800">Lihat semua layanan</a>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:col-span-3">
+            @foreach ($layanans as $i => $layanan)
+                @php
+                    $barisPertama = trim(explode("\n", (string) $layanan->deskripsi)[0] ?? '');
+                    $tujuan = \Illuminate\Support\Facades\Route::has('layanan.show') ? route('layanan.show', $layanan) : route('layanan');
+                @endphp
+                <a href="{{ $tujuan }}" class="pf-rv group rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-navy-700/30" style="--d: {{ ($i % 2) * 100 }}ms">
+                    <span class="font-display text-sm font-bold text-amber-500">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                    <p class="mt-2 font-display text-base font-bold text-navy-950 transition group-hover:text-navy-700">{{ $layanan->nama }}</p>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ \Illuminate\Support\Str::limit($barisPertama, 90) }}</p>
                 </a>
-            </div>
-
-            @php
-                $daftarJurusan = [
-                    [
-                        'kode' => 'TO',
-                        'nama' => 'Teknik Otomotif',
-                        'logo' => 'TKRO.png',
-                        'bar' => 'from-red-500 to-orange-400',
-                        'soft' => 'bg-red-50 border-red-100',
-                        'teks' => 'text-red-600',
-                        'desk' => 'Jurusan Teknik Otomotif (TO) adalah program keahlian yang mempelajari cara merancang, memproduksi, merawat, dan memperbaiki kendaraan bermotor seperti mobil, sepeda motor, dan alat berat. Di jurusan ini, siswa atau mahasiswa mendalami komponen mesin, sistem kelistrikan, sasis, serta teknologi kendaraan modern agar siap bekerja sebagai teknisi, pengusaha, atau tenaga ahli di industri otomotif.',
-                    ],
-                    [
-                        'kode' => 'PPLG',
-                        'nama' => 'Pengembangan Perangkat Lunak dan Gim',
-                        'logo' => 'PPLG.png',
-                        'bar' => 'from-indigo-600 to-blue-400',
-                        'soft' => 'bg-indigo-50 border-indigo-100',
-                        'teks' => 'text-indigo-600',
-                        'desk' => 'PPLG atau Pengembangan Perangkat Lunak dan Gim adalah jurusan di SMK yang fokus pada cara membuat dan merancang aplikasi, website, hingga game. Di jurusan ini, siswa belajar menulis kode komputer (coding), membuat desain tampilan, dan mengatur basis data.',
-                    ],
-                    [
-                        'kode' => 'TJKT',
-                        'nama' => 'Teknik Jaringan Komputer dan Telekomunikasi',
-                        'logo' => 'TJKT.png',
-                        'bar' => 'from-sky-500 to-cyan-400',
-                        'soft' => 'bg-sky-50 border-sky-100',
-                        'teks' => 'text-sky-600',
-                        'desk' => 'Jurusan Teknik Jaringan Komputer dan Telekomunikasi (TJKT) merupakan program keahlian yang fokus pada kompetensi instalasi, konfigurasi, pengoperasian, dan pemeliharaan jaringan komputer serta infrastruktur telekomunikasi.',
-                    ],
-                    [
-                        'kode' => 'TPFL',
-                        'nama' => 'Teknik Pengelasan dan Fabrikasi Logam',
-                        'logo' => 'TPFL.png',
-                        'bar' => 'from-orange-500 to-yellow-400',
-                        'soft' => 'bg-orange-50 border-orange-100',
-                        'teks' => 'text-orange-600',
-                        'desk' => 'Jurusan Teknik Pengelasan dan Fabrikasi Logam (TPFL) adalah program keahlian yang mempelajari cara memotong, membentuk, merakit, dan menyambung bahan logam menggunakan berbagai teknik las modern seperti SMAW, MIG, atau TIG.',
-                    ],
-                ];
-            @endphp
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                @foreach ($daftarJurusan as $jurusan)
-                    <a href="{{ route('jurusan') }}" style="--i: {{ $loop->index % 2 }}" class="pf-reveal pf-shine group relative bg-white rounded-2xl border border-gray-100 shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col">
-                        {{-- garis warna atas --}}
-                        <span class="h-1.5 w-full bg-gradient-to-r {{ $jurusan['bar'] }}"></span>
-
-                        {{-- kode jurusan sebagai watermark --}}
-                        <span class="absolute bottom-2 right-4 text-6xl font-black text-gray-100 group-hover:text-gray-200 transition-colors select-none leading-none">
-                            {{ $jurusan['kode'] }}
-                        </span>
-
-                        <div class="relative p-6 flex gap-5 flex-1">
-                            <span class="w-20 h-20 rounded-2xl {{ $jurusan['soft'] }} border flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                                <img src="{{ asset('images/'.$jurusan['logo']) }}" alt="Logo {{ $jurusan['nama'] }}" class="w-14 h-14 object-contain">
-                            </span>
-                            <div>
-                                <span class="inline-block text-[10px] font-extrabold tracking-widest {{ $jurusan['teks'] }} {{ $jurusan['soft'] }} border px-2.5 py-0.5 rounded-full mb-2">
-                                    {{ $jurusan['kode'] }}
-                                </span>
-                                <h3 class="font-bold text-navy-900 text-base mb-2 leading-snug">{{ $jurusan['nama'] }}</h3>
-                                <p class="text-xs text-gray-500 leading-relaxed">{{ $jurusan['desk'] }}</p>
-                            </div>
-                        </div>
-
-                        <div class="relative px-6 pb-5">
-                            <span class="inline-flex items-center gap-1.5 text-xs font-bold {{ $jurusan['teks'] }}">
-                                Pelajari selengkapnya
-                                <svg class="w-4 h-4 group-hover:translate-x-1.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-                            </span>
-                        </div>
-                    </a>
-                @endforeach
-            </div>
+            @endforeach
         </div>
-    </section>
+    </div>
+</section>
+@endif
 
-    {{-- ORGANISASI SEKOLAH: OSIS & MPK --}}
-    <section class="relative bg-gradient-to-b from-gray-50 via-white to-gray-50 py-20 overflow-hidden">
-        <div class="pf-float absolute top-10 -left-24 w-72 h-72 bg-blue-100 rounded-full blur-3xl opacity-60"></div>
-        <div class="pf-float-rev absolute bottom-10 -right-24 w-72 h-72 bg-yellow-100 rounded-full blur-3xl opacity-60"></div>
+{{-- ============ PERJALANAN PERUSAHAAN ============ --}}
+<section class="mx-auto max-w-6xl px-6 py-28">
+    <div class="pf-rv mx-auto mb-16 max-w-2xl text-center">
+        <div class="flex items-center justify-center gap-3">
+            <span class="h-px w-8 bg-amber-400"></span>
+            <p class="text-sm font-semibold tracking-wide text-navy-700">Perjalanan perusahaan</p>
+            <span class="h-px w-8 bg-amber-400"></span>
+        </div>
+        <h2 class="mt-3 font-display text-3xl font-bold text-navy-950 md:text-4xl">Tonggak penting kami</h2>
+    </div>
 
-        <div class="max-w-5xl mx-auto px-6 relative">
-            <div class="pf-reveal text-center mb-14">
-                <span class="inline-block bg-blue-100 text-blue-700 text-[11px] font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4">
-                    Kesiswaan
-                </span>
-                <h2 class="text-2xl md:text-3xl font-extrabold text-navy-900 mb-3">Organisasi Sekolah</h2>
-                <p class="text-sm text-gray-500 max-w-xl mx-auto leading-relaxed">
-                    Dua organisasi inti yang menjalankan roda kegiatan kesiswaan di SMKN 4 Bogor.
-                </p>
-            </div>
-
-            @php
-                $organisasi = [
-                    [
-                        'singkatan' => 'OSIS',
-                        'nama' => 'Organisasi Siswa Intra Sekolah',
-                        'peran' => 'Eksekutif Siswa',
-                        'foto' => 'OSIS.png',
-                        'logo' => 'osis smk.jpeg',
-                        // logo OSIS: tanpa padding + scale-125 agar ukurannya setara logo MPK
-                        'logoWrap' => '',
-                        'logoImg' => 'scale-125',
-                        'desk' => 'OSIS adalah organisasi resmi yang menjadi wadah bagi siswa untuk belajar berorganisasi, mengembangkan kepemimpinan, dan merancang berbagai kegiatan sekolah seperti MPLS, perayaan hari besar, kegiatan sosial, hingga lomba antar kelas. Anggota OSIS dipilih melalui pemilihan ketua OSIS setiap tahunnya dan bertanggung jawab langsung dalam pelaksanaan program kesiswaan.',
-                        'tugas' => ['Merancang kegiatan sekolah', 'Melatih kepemimpinan siswa', 'Ketua dipilih setiap tahun'],
-                    ],
-                    [
-                        'singkatan' => 'MPK',
-                        'nama' => 'Majelis Perwakilan Kelas',
-                        'peran' => 'Legislatif Siswa',
-                        'foto' => 'mpk.jpeg',
-                        'logo' => 'logo mpk.png',
-                        'logoWrap' => 'p-1',
-                        'logoImg' => '',
-                        'desk' => 'MPK adalah lembaga legislatif siswa yang beranggotakan perwakilan dari setiap kelas. Tugas utamanya adalah mengawasi kinerja OSIS, menampung dan menyalurkan aspirasi siswa dari tiap kelas, serta ikut menyusun dan mengesahkan program kerja OSIS. MPK berperan menjaga agar kegiatan kesiswaan tetap sejalan dengan kepentingan seluruh siswa.',
-                        'tugas' => ['Mengawasi kinerja OSIS', 'Menyalurkan aspirasi tiap kelas', 'Mengesahkan program kerja'],
-                    ],
-                ];
-            @endphp
-
-            <div class="relative grid grid-cols-1 md:grid-cols-2 gap-8">
-                {{-- penghubung antar organisasi --}}
-                <div class="hidden md:flex absolute left-1/2 top-28 -translate-x-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-yellow-400 text-navy-900 font-black text-xl items-center justify-center shadow-lg ring-4 ring-white pf-pulse-soft">
-                    &amp;
+    <ol class="relative mx-auto max-w-4xl">
+        <span class="absolute left-4 top-0 h-full w-px bg-gradient-to-b from-amber-400 via-slate-200 to-transparent md:left-1/2"></span>
+        @foreach (config('perusahaan.tonggak', []) as $i => [$tahun, $judul, $isi])
+            <li class="pf-rv relative pb-12 pl-12 last:pb-0 md:grid md:grid-cols-2 md:gap-16 md:pl-0">
+                <span class="absolute left-4 top-1.5 h-4 w-4 -translate-x-1/2 rounded-full bg-amber-400 ring-4 ring-white md:left-1/2"></span>
+                <div class="{{ $i % 2 === 0 ? 'md:text-right' : 'md:col-start-2' }}">
+                    <p class="font-display text-2xl font-bold text-navy-700">{{ $tahun }}</p>
+                    <p class="mt-1 text-lg font-semibold text-navy-950">{{ $judul }}</p>
+                    <p class="mt-1 text-sm leading-relaxed text-slate-600">{{ $isi }}</p>
                 </div>
+            </li>
+        @endforeach
+    </ol>
+</section>
 
-                @foreach ($organisasi as $org)
-                    <div style="--i: {{ $loop->index }}" class="pf-reveal group relative bg-white rounded-3xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col">
-                        {{-- FOTO + LOGO --}}
-                        <div class="relative">
-                            <div class="relative h-56 rounded-t-3xl overflow-hidden">
-                                <img src="{{ asset('images/'.$org['foto']) }}" alt="Kegiatan {{ $org['singkatan'] }}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                                <div class="absolute inset-0 bg-gradient-to-t from-navy-900/90 via-navy-900/30 to-transparent"></div>
-
-                                <span class="absolute top-4 left-4 bg-yellow-400 text-navy-900 text-[11px] font-extrabold px-3 py-1 rounded-full shadow">
-                                    {{ $org['peran'] }}
-                                </span>
-                                <h3 class="absolute bottom-4 left-6 text-4xl font-black text-white tracking-wide drop-shadow">{{ $org['singkatan'] }}</h3>
-                            </div>
-
-                            <span class="pf-wiggle-hover absolute -bottom-10 right-6 w-20 h-20 rounded-full overflow-hidden bg-white shadow-xl ring-4 ring-white flex items-center justify-center {{ $org['logoWrap'] }}">
-                                <img src="{{ asset('images/'.$org['logo']) }}" alt="Logo {{ $org['singkatan'] }}" class="w-full h-full object-contain {{ $org['logoImg'] }}">
-                            </span>
-                        </div>
-
-                        {{-- ISI --}}
-                        <div class="p-6 pt-8 flex-1 flex flex-col">
-                            <p class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">{{ $org['nama'] }}</p>
-                            <p class="text-sm text-gray-600 leading-relaxed mb-5">{{ $org['desk'] }}</p>
-
-                            <div class="mt-auto pt-4 border-t border-gray-100">
-                                <p class="text-[11px] font-bold text-navy-900 uppercase tracking-widest mb-3">Peran Utama</p>
-                                <ul class="space-y-2">
-                                    @foreach ($org['tugas'] as $tugas)
-                                        <li class="flex items-center gap-2.5 text-xs text-gray-600">
-                                            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                                                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg>
-                                            </span>
-                                            {{ $tugas }}
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        </div>
-
-                        <span class="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full rounded-b-3xl bg-gradient-to-r from-blue-600 to-yellow-400 transition-all duration-500"></span>
-                    </div>
-                @endforeach
+{{-- ============ LEGALITAS & SERTIFIKASI ============ --}}
+<section class="bg-slate-50">
+    <div class="mx-auto grid max-w-6xl gap-10 px-6 py-28 lg:grid-cols-2 lg:items-center">
+        <div class="pf-rv">
+            <div class="flex items-center gap-3">
+                <span class="h-px w-8 bg-amber-400"></span>
+                <p class="text-sm font-semibold tracking-wide text-navy-700">Legalitas &amp; sertifikasi</p>
             </div>
+            <h2 class="mt-3 font-display text-3xl font-bold leading-tight text-navy-950 md:text-4xl">Beroperasi resmi dan sesuai standar.</h2>
+            <p class="mt-4 leading-relaxed text-slate-600">Kami menjalankan layanan sesuai ketentuan perizinan dan standar mutu agar pelanggan memperoleh layanan yang dapat dipercaya.</p>
+            <p class="mt-6 inline-block rounded-xl bg-white px-5 py-3 text-sm shadow-sm ring-1 ring-slate-200">
+                <span class="text-slate-500">Nomor legalitas:</span>
+                <span class="font-semibold text-navy-800">{{ $profil->legalitas ?: '-' }}</span>
+            </p>
         </div>
-    </section>
+        <ul class="grid gap-4 sm:grid-cols-2">
+            @foreach (config('perusahaan.sertifikasi', []) as $i => $s)
+                <li class="pf-rv flex items-start gap-3 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-lg" style="--d: {{ ($i % 2) * 100 }}ms">
+                    <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-navy-700 text-white">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="3.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $centang }}"/></svg>
+                    </span>
+                    <span class="text-sm font-medium leading-snug text-slate-700">{{ $s }}</span>
+                </li>
+            @endforeach
+        </ul>
+    </div>
+</section>
 
-    {{-- FASILITAS SEKOLAH --}}
-    <section class="relative bg-navy-900 py-20 overflow-hidden">
-        <div class="pf-float absolute -top-24 -right-24 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl"></div>
-        <div class="pf-float-rev absolute -bottom-24 -left-24 w-80 h-80 bg-blue-400/10 rounded-full blur-3xl"></div>
-
-        <div class="max-w-5xl mx-auto px-6 relative">
-            <div class="pf-reveal text-center mb-12">
-                <span class="inline-block bg-white/10 border border-white/20 text-blue-200 text-[11px] font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-4">
-                    Sarana &amp; Prasarana
-                </span>
-                <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-3">Fasilitas Sekolah</h2>
-                <p class="text-sm text-gray-300 max-w-xl mx-auto leading-relaxed">
-                    Fasilitas lengkap yang menunjang kegiatan belajar, praktik, dan pengembangan diri seluruh warga sekolah.
-                </p>
+{{-- ============ AJAKAN PENUTUP ============ --}}
+<section class="px-6 py-24">
+    <div class="pf-rv relative mx-auto max-w-6xl overflow-hidden rounded-3xl bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 px-8 py-14 text-white shadow-2xl shadow-navy-900/20 md:px-14">
+        <div class="pf-float-slow absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/5"></div>
+        <div class="pf-float absolute -bottom-20 right-40 h-48 w-48 rounded-full bg-amber-400/15"></div>
+        <div class="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div class="max-w-xl">
+                <p class="text-sm font-semibold text-amber-300">Mari berkolaborasi</p>
+                <h2 class="mt-2 font-display text-2xl font-bold md:text-3xl">Tertarik bekerja sama dengan kami?</h2>
+                <p class="mt-2 text-blue-100">Ceritakan kebutuhan Anda, tim kami akan menghubungi secepatnya.</p>
             </div>
-
-            @php
-                $fasilitas = [
-                    ['judul' => 'Lab Komputer', 'deskripsi' => 'Dilengkapi dengan komputer spesifikasi terkini untuk mendukung pembelajaran IT yang optimal.', 'icon' => 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
-                    ['judul' => 'Bengkel Praktik', 'deskripsi' => 'Ruang kerja yang dirancang menyerupai standar industri untuk melatih keterampilan teknis siswa.', 'icon' => 'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z'],
-                    ['judul' => 'Perpustakaan', 'deskripsi' => 'Koleksi buku yang lengkap dan area membaca yang nyaman untuk menunjang literasi siswa.', 'icon' => 'M12 6.25C10.5 5 8 4 5 4v13c3 0 5.5 1 7 2.25M12 6.25C13.5 5 16 4 19 4v13c-3 0-5.5 1-7 2.25M12 6.25v13'],
-                    ['judul' => 'Lapangan Olahraga', 'deskripsi' => 'Fasilitas olahraga multifungsi untuk kegiatan jasmani, pertandingan, dan ekstrakurikuler.', 'icon' => 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0V3m0 9H3m18 0h-9'],
-                    ['judul' => 'Masjid', 'deskripsi' => 'Tempat ibadah yang luas dan nyaman untuk memfasilitasi kegiatan keagamaan warga sekolah.', 'icon' => 'M3 21h18M5 21V10l7-6 7 6v11M9 21v-6h6v6'],
-                    ['judul' => 'Ruang Kelas', 'deskripsi' => 'Ruang belajar ber-AC dengan fasilitas multimedia yang mendukung proses KBM yang interaktif.', 'icon' => 'M4 4h16v16H4V4Zm0 6h16M10 4v16'],
-                ];
-            @endphp
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                @foreach ($fasilitas as $i => $item)
-                    <div style="--i: {{ $i % 3 }}" class="pf-reveal group relative bg-white/5 hover:bg-white/10 border border-white/10 hover:border-blue-400/60 backdrop-blur rounded-2xl p-6 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-900/40 transition-all duration-300 overflow-hidden">
-                        <span class="absolute -top-2 right-3 text-6xl font-black text-white/5 group-hover:text-white/10 transition-colors select-none">
-                            {{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}
-                        </span>
-
-                        <div class="pf-wiggle-hover relative bg-gradient-to-br from-blue-400 to-blue-600 text-white w-12 h-12 rounded-xl flex items-center justify-center mb-5 shadow-lg shadow-blue-900/40 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}" />
-                            </svg>
-                        </div>
-                        <h3 class="relative font-bold text-white mb-2">{{ $item['judul'] }}</h3>
-                        <p class="relative text-xs text-gray-300 leading-relaxed">{{ $item['deskripsi'] }}</p>
-
-                        <span class="absolute bottom-0 left-0 h-1 w-0 group-hover:w-full bg-gradient-to-r from-blue-400 to-yellow-400 transition-all duration-500"></span>
-                    </div>
-                @endforeach
-            </div>
+            <a href="{{ route('kontak') }}" class="shrink-0 rounded-full bg-amber-400 px-8 py-3.5 text-sm font-semibold text-navy-950 transition hover:-translate-y-0.5 hover:bg-amber-300">Hubungi kami</a>
         </div>
-    </section>
+    </div>
+</section>
 
-    <script>
-        const kurangGerak = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-        // ---------- muncul saat di-scroll ----------
-        const itemReveal = document.querySelectorAll('.pf-reveal');
-        if ('IntersectionObserver' in window) {
-            const pengamat = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('is-visible');
-                        pengamat.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-            itemReveal.forEach(el => pengamat.observe(el));
-        } else {
-            itemReveal.forEach(el => el.classList.add('is-visible'));
-        }
-
-        // ---------- angka statistik menghitung naik ----------
-        const hitungNaik = (el) => {
-            const target = parseInt(el.dataset.target, 10) || 0;
-            const akhiran = el.dataset.suffix || '';
-            if (kurangGerak || target === 0) { el.textContent = target + akhiran; return; }
-
-            const durasi = 1200;
-            const mulai = performance.now();
-            const langkah = (sekarang) => {
-                const p = Math.min((sekarang - mulai) / durasi, 1);
-                const halus = 1 - Math.pow(1 - p, 3); // ease-out
-                el.textContent = Math.round(target * halus) + (p < 1 ? '' : akhiran);
-                if (p < 1) requestAnimationFrame(langkah);
-            };
-            el.textContent = '0';
-            requestAnimationFrame(langkah);
-        };
-
-        const itemHitung = document.querySelectorAll('.pf-count');
-        if ('IntersectionObserver' in window) {
-            const pengamatAngka = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        hitungNaik(entry.target);
-                        pengamatAngka.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.6 });
-            itemHitung.forEach(el => pengamatAngka.observe(el));
-        }
-    </script>
-
-</body>
-</html>
+<script>
+(function () {
+    // Animasi muncul saat di-scroll
+    var items = document.querySelectorAll('.pf-rv');
+    if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+                if (e.isIntersecting) { e.target.classList.add('pf-on'); io.unobserve(e.target); }
+            });
+        }, { threshold: 0.1 });
+        items.forEach(function (el) { io.observe(el); });
+    } else {
+        items.forEach(function (el) { el.classList.add('pf-on'); });
+    }
+})();
+</script>
+@endsection

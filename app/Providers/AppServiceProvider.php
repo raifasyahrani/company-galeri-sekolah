@@ -15,20 +15,12 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Model yang dicatat => nama modul yang tampil.
-        // Nama model yang tidak ada di proyekmu aman, tidak akan pernah terpicu.
+        // Model yang dicatat => nama modul yang tampil di "Aktivitas Terkini"
         $modul = [
-            \App\Models\Beranda::class            => 'Beranda',
-            \App\Models\Berita::class             => 'Berita',
-            \App\Models\Jurusan::class            => 'Jurusan',
-            \App\Models\JurusanSeragam::class     => 'Jurusan: Seragam',
-            \App\Models\JurusanKegiatan::class    => 'Jurusan: Kegiatan',
-            \App\Models\JurusanProduk::class      => 'Jurusan: Produk',
-            \App\Models\JurusanDokumentasi::class => 'Jurusan: Dokumentasi',
-            \App\Models\Prestasi::class           => 'Prestasi',
-            \App\Models\Galeri::class             => 'Galeri',
-            \App\Models\Ekskul::class             => 'Ekskul',
-            \App\Models\Profil::class             => 'Profil',
+            \App\Models\Layanan::class => 'Layanan',
+            \App\Models\Artikel::class => 'Artikel',
+            \App\Models\Galeri::class  => 'Galeri',
+            \App\Models\Profil::class  => 'Profil',
         ];
 
         $aksi = ['created' => 'tambah', 'updated' => 'ubah', 'deleted' => 'hapus'];
@@ -45,8 +37,7 @@ class AppServiceProvider extends ServiceProvider
                     return;
                 }
 
-                $judul = $model->judul ?? $model->nama ?? $model->hero_judul
-                    ?? $model->keterangan ?? $model->kode ?? null;
+                $judul = $model->judul ?? $model->nama ?? null;
 
                 try {
                     ActivityLog::create([
